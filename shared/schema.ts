@@ -38,6 +38,26 @@ export const storeConfigSchema = z.object({
 
 export type StoreConfig = z.infer<typeof storeConfigSchema>;
 
+// Cart Item Schema
+export const cartItemSchema = z.object({
+  id: z.string(),
+  productId: z.string(),
+  storage: z.string(),
+  quantity: z.number().min(1),
+  addedAt: z.string(),
+});
+
+export type CartItem = z.infer<typeof cartItemSchema>;
+
+// Insert Cart Item Schema
+export const insertCartItemSchema = z.object({
+  productId: z.string(),
+  storage: z.string(),
+  quantity: z.number().min(1).default(1),
+});
+
+export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
+
 // Order Schema
 export const orderSchema = z.object({
   id: z.string(),
