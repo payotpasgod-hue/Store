@@ -28,13 +28,17 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [paymentType, setPaymentType] = useState<"full" | "advance">("advance");
+  const [paymentType, setPaymentType] = useState<"full" | "advance" | null>(null);
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
   const createOrdersMutation = useMutation({
     mutationFn: async () => {
       if (!screenshot) {
         throw new Error("Screenshot is required");
+      }
+
+      if (!paymentType) {
+        throw new Error("Payment type is required");
       }
 
       const formData = new FormData();
@@ -91,6 +95,15 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
   });
 
   const handleSubmit = () => {
+    if (!paymentType) {
+      toast({
+        title: "Payment Option Required",
+        description: "Please select a payment option to proceed.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (!screenshot) {
       toast({
         title: "Screenshot Required",
@@ -115,13 +128,13 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
     });
     
     const advancePrice = paymentConfig.defaultAdvancePayment * cartItems.reduce((sum, item) => sum + item.quantity, 0);
-    const remainingBalance = fullPrice - (paymentType === "full" ? fullPrice : advancePrice);
+    const remainingBalance = paymentType === "full" ? 0 : (paymentType === "advance" ? fullPrice - advancePrice : 0);
     
     return { fullPrice, advancePrice, remainingBalance };
   };
 
   const totals = calculateTotals();
-  const paymentAmount = paymentType === "full" ? totals.fullPrice : totals.advancePrice;
+  const paymentAmount = paymentType === "full" ? totals.fullPrice : (paymentType === "advance" ? totals.advancePrice : 0);
 
   return (
     <Card className="rounded-2xl">
@@ -138,8 +151,14 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <Label>Choose Payment Option</Label>
-          <RadioGroup value={paymentType} onValueChange={(v) => setPaymentType(v as "full" | "advance")}>
-            <div className="flex items-start space-x-3 p-4 rounded-lg border-2 border-border hover-elevate cursor-pointer" data-testid="radio-full-payment">
+          <RadioGroup value={paymentType || ""} onValueChange={(v) => setPaymentType(v as "full" | "advance")}>
+            <div 
+              className={`flex items-start space-x-3 p-4 rounded-lg border-2 hover-elevate cursor-pointer transition-all ${
+                paymentType === "full" ? "border-primary bg-primary/5" : "border-border"
+              }`}
+              onClick={() => setPaymentType("full")}
+              data-testid="radio-full-payment"
+            >
               <RadioGroupItem value="full" id="full" />
               <div className="flex-1">
                 <Label htmlFor="full" className="cursor-pointer font-medium">
@@ -151,7 +170,13 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
               </div>
             </div>
 
-            <div className="flex items-start space-x-3 p-4 rounded-lg border-2 border-border hover-elevate cursor-pointer" data-testid="radio-advance-payment">
+            <div 
+              className={`flex items-start space-x-3 p-4 rounded-lg border-2 hover-elevate cursor-pointer transition-all ${
+                paymentType === "advance" ? "border-primary bg-primary/5" : "border-border"
+              }`}
+              onClick={() => setPaymentType("advance")}
+              data-testid="radio-advance-payment"
+            >
               <RadioGroupItem value="advance" id="advance" />
               <div className="flex-1">
                 <Label htmlFor="advance" className="cursor-pointer font-medium">
@@ -166,7 +191,8 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
           </RadioGroup>
         </div>
 
-        <div className="bg-muted/30 rounded-xl p-6 space-y-4">
+        {paymentType && (
+          <div className="bg-muted/30 rounded-xl p-6 space-y-4">
           <div className="text-center">
             <p className="text-sm font-medium mb-4">Scan QR Code or Use UPI ID</p>
             <div className="bg-white p-4 rounded-lg inline-block shadow-lg mb-4">
@@ -200,8 +226,10 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
             )}
           </div>
         </div>
+        )}
 
-        <div className="space-y-2">
+        {paymentType && (
+          <div className="space-y-2">
           <Label htmlFor="screenshot">Upload Payment Screenshot *</Label>
           <Input
             id="screenshot"
@@ -220,6 +248,7 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
             </p>
           )}
         </div>
+        )}
       </CardContent>
 
       <CardFooter className="flex gap-3">
