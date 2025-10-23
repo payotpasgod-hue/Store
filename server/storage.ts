@@ -116,7 +116,9 @@ export class MemStorage implements IStorage {
 
   async addCartItem(itemData: Omit<CartItem, "id" | "addedAt">): Promise<CartItem> {
     const existing = Array.from(this.cartItems.values()).find(
-      item => item.productId === itemData.productId && item.storage === itemData.storage
+      item => item.productId === itemData.productId && 
+              item.storage === itemData.storage &&
+              item.color === itemData.color
     );
 
     if (existing) {

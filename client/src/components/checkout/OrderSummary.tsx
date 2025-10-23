@@ -53,7 +53,7 @@ export function OrderSummary({ cartItems, config, advancePayment }: OrderSummary
                   <span className="font-medium ml-2">×{item.quantity}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>{item.storage}</span>
+                  <span>{item.color ? `${item.color}, ${item.storage}` : item.storage}</span>
                   <span data-testid={`text-summary-price-${item.id}`}>
                     ₹{(storageOption.price * item.quantity).toLocaleString("en-IN")}
                   </span>

@@ -150,6 +150,7 @@ export default function CartPage() {
                           {product.displayName}
                         </h3>
                         <p className="text-sm text-muted-foreground mb-3">
+                          {item.color && <span>{item.color} | </span>}
                           {item.storage} | {product.model}
                         </p>
                         

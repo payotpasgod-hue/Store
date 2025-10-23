@@ -5,6 +5,7 @@
       "deviceName": "iPhone 12",
       "displayName": "Buy Apple iPhone 12",
       "model": "A2878",
+      "colorOptions": ["Black", "White", "Red", "Green", "Blue", "Purple"],
       "storageOptions": [
         {
           "capacity": "256GB",
@@ -25,6 +26,7 @@
       "deviceName": "iPhone 12 Pro",
       "displayName": "Buy Apple iPhone 12 Pro",
       "model": "A2234",
+      "colorOptions": ["Graphite", "Silver", "Gold", "Pacific Blue"],
       "storageOptions": [
         {
           "capacity": "512GB",
@@ -45,6 +47,7 @@
       "deviceName": "iPhone 12 Pro Max",
       "displayName": "Buy Apple iPhone 12 Pro Max",
       "model": "A2912",
+      "colorOptions": ["Graphite", "Silver", "Gold", "Pacific Blue"],
       "storageOptions": [
         {
           "capacity": "512GB",
@@ -65,6 +68,7 @@
       "deviceName": "iPhone 13",
       "displayName": "Buy Apple iPhone 13",
       "model": "A2273",
+      "colorOptions": ["Pink", "Blue", "Midnight", "Starlight", "Green", "Red"],
       "storageOptions": [
         {
           "capacity": "512GB",
@@ -85,6 +89,7 @@
       "deviceName": "iPhone 13 Pro",
       "displayName": "Buy Apple iPhone 13 Pro",
       "model": "A2717",
+      "colorOptions": ["Sierra Blue", "Graphite", "Gold", "Silver"],
       "storageOptions": [
         {
           "capacity": "1024GB",
@@ -105,6 +110,7 @@
       "deviceName": "iPhone 13 Pro Max",
       "displayName": "Buy Apple iPhone 13 Pro Max",
       "model": "A2688",
+      "colorOptions": ["Sierra Blue", "Graphite", "Gold", "Silver"],
       "storageOptions": [
         {
           "capacity": "1024GB",
@@ -125,6 +131,7 @@
       "deviceName": "iPhone 14 Pro Max",
       "displayName": "Buy Apple iPhone 14 Pro Max",
       "model": "A2750",
+      "colorOptions": ["Deep Purple", "Space Black", "Silver", "Gold"],
       "storageOptions": [
         {
           "capacity": "1024GB",
@@ -145,6 +152,7 @@
       "deviceName": "iPhone 14 Pro",
       "displayName": "Buy Apple iPhone 14 Pro",
       "model": "A2929",
+      "colorOptions": ["Deep Purple", "Space Black", "Silver", "Gold"],
       "storageOptions": [
         {
           "capacity": "1024GB",
@@ -165,6 +173,7 @@
       "deviceName": "iPhone 15 Pro Max",
       "displayName": "Buy Apple iPhone 15 Pro Max",
       "model": "A2165",
+      "colorOptions": ["Natural Titanium", "Blue Titanium", "White Titanium", "Black Titanium"],
       "storageOptions": [
         {
           "capacity": "1024GB",
@@ -185,6 +194,7 @@
       "deviceName": "iPhone 15 Pro",
       "displayName": "Buy Apple iPhone 15 Pro",
       "model": "A2025",
+      "colorOptions": ["Natural Titanium", "Blue Titanium", "White Titanium", "Black Titanium"],
       "storageOptions": [
         {
           "capacity": "1024GB",
@@ -205,6 +215,7 @@
       "deviceName": "iPhone 11",
       "displayName": "Buy Apple iPhone 11",
       "model": "A2429",
+      "colorOptions": ["Black", "White", "Purple", "Yellow", "Green", "Red"],
       "storageOptions": [
         {
           "capacity": "256GB",
@@ -225,6 +236,7 @@
       "deviceName": "iPhone 11 Pro Max",
       "displayName": "Buy Apple iPhone 11 Pro Max",
       "model": "A2859",
+      "colorOptions": ["Midnight Green", "Space Gray", "Silver", "Gold"],
       "storageOptions": [
         {
           "capacity": "512GB",

@@ -178,6 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           productId: item.productId,
           productName: product.displayName,
           storage: item.storage,
+          color: item.color,
           fullPrice,
           paidAmount,
           remainingBalance,
@@ -218,6 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pinCode: req.body.pinCode,
         productId: req.body.productId,
         storage: req.body.storage,
+        color: req.body.color,
         paymentType: req.body.paymentType,
       });
 

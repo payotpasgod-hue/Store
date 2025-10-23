@@ -7,6 +7,7 @@ export const productSchema = z.object({
   deviceName: z.string(), // For MobileAPI.dev lookup (e.g., "iPhone 15 Pro")
   displayName: z.string(),
   model: z.string(),
+  colorOptions: z.array(z.string()).optional(), // Available colors for this model
   storageOptions: z.array(z.object({
     capacity: z.string(), // e.g., "128GB", "256GB"
     price: z.number(), // in INR
@@ -43,6 +44,7 @@ export const cartItemSchema = z.object({
   id: z.string(),
   productId: z.string(),
   storage: z.string(),
+  color: z.string().optional(),
   quantity: z.number().min(1),
   addedAt: z.string(),
 });
@@ -53,6 +55,7 @@ export type CartItem = z.infer<typeof cartItemSchema>;
 export const insertCartItemSchema = z.object({
   productId: z.string(),
   storage: z.string(),
+  color: z.string().optional(),
   quantity: z.number().min(1).default(1),
 });
 
@@ -68,6 +71,7 @@ export const orderSchema = z.object({
   productId: z.string(),
   productName: z.string(),
   storage: z.string(),
+  color: z.string().optional(),
   fullPrice: z.number(),
   paidAmount: z.number(),
   remainingBalance: z.number(),
@@ -86,6 +90,7 @@ export const insertOrderSchema = z.object({
   pinCode: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit PIN code"),
   productId: z.string(),
   storage: z.string(),
+  color: z.string().optional(),
   paymentType: z.enum(["full", "advance"]),
 });
 

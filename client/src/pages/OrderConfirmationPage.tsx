@@ -83,7 +83,7 @@ export default function OrderConfirmationPage() {
             <div>
               <p className="text-sm text-muted-foreground mb-1">Product</p>
               <p className="font-semibold text-lg" data-testid="text-product-name">
-                {order.productName} - {order.storage}
+                {order.productName} - {order.color ? `${order.color}, ` : ""}{order.storage}
               </p>
             </div>
 
