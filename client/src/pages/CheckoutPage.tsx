@@ -5,7 +5,7 @@ import { AddressStep } from "@/components/checkout/AddressStep";
 import { PaymentStep } from "@/components/checkout/PaymentStep";
 import { CheckoutProgress } from "@/components/checkout/CheckoutProgress";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
-import type { Product, StoreConfig } from "@shared/schema";
+import type { CartItem, StoreConfig } from "@shared/schema";
 import { Loader2 } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -18,24 +18,21 @@ export default function CheckoutPage() {
     pinCode: "",
   });
 
-  const searchParams = new URLSearchParams(window.location.search);
-  const productId = searchParams.get("product");
-  const storage = searchParams.get("storage");
+  const { data: cartItems, isLoading: cartLoading } = useQuery<CartItem[]>({
+    queryKey: ["/api/cart"],
+  });
 
   const { data: config, isLoading: configLoading } = useQuery<StoreConfig>({
     queryKey: ["/api/config"],
   });
 
-  const product = config?.products.find(p => p.id === productId);
-  const selectedStorage = product?.storageOptions.find(s => s.capacity === storage);
-
   useEffect(() => {
-    if (!productId || !storage) {
-      navigate("/");
+    if (!cartLoading && (!cartItems || cartItems.length === 0)) {
+      navigate("/cart");
     }
-  }, [productId, storage, navigate]);
+  }, [cartItems, cartLoading, navigate]);
 
-  if (configLoading) {
+  if (cartLoading || configLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" data-testid="loader-checkout" />
@@ -43,12 +40,8 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!product || !selectedStorage || !config) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Product not found</p>
-      </div>
-    );
+  if (!cartItems || cartItems.length === 0 || !config) {
+    return null;
   }
 
   return (
@@ -72,8 +65,8 @@ export default function CheckoutPage() {
             ) : (
               <PaymentStep
                 addressData={addressData}
-                product={product}
-                storage={selectedStorage}
+                cartItems={cartItems}
+                config={config}
                 paymentConfig={config.paymentConfig}
                 onBack={() => setStep(1)}
               />
@@ -82,8 +75,8 @@ export default function CheckoutPage() {
 
           <div className="lg:col-span-1">
             <OrderSummary
-              product={product}
-              storage={selectedStorage}
+              cartItems={cartItems}
+              config={config}
               advancePayment={config.paymentConfig.defaultAdvancePayment}
             />
           </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { Product, PaymentConfig } from "@shared/schema";
+import type { CartItem, PaymentConfig, StoreConfig } from "@shared/schema";
 import { Loader2 } from "lucide-react";
 
 interface PaymentStepProps {
@@ -18,34 +18,73 @@ interface PaymentStepProps {
     address: string;
     pinCode: string;
   };
-  product: Product;
-  storage: { capacity: string; price: number };
+  cartItems: CartItem[];
+  config: StoreConfig;
   paymentConfig: PaymentConfig;
   onBack: () => void;
 }
 
-export function PaymentStep({ addressData, product, storage, paymentConfig, onBack }: PaymentStepProps) {
+export function PaymentStep({ addressData, cartItems, config, paymentConfig, onBack }: PaymentStepProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [paymentType, setPaymentType] = useState<"full" | "advance">("advance");
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
-  const createOrderMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const response = await fetch("/api/orders", {
+  const createOrdersMutation = useMutation({
+    mutationFn: async () => {
+      if (!screenshot) {
+        throw new Error("Screenshot is required");
+      }
+
+      const formData = new FormData();
+      formData.append("screenshot", screenshot);
+      formData.append("customerName", addressData.customerName);
+      formData.append("phone", addressData.phone);
+      formData.append("address", addressData.address);
+      formData.append("pinCode", addressData.pinCode);
+      formData.append("paymentType", paymentType);
+      formData.append("items", JSON.stringify(cartItems));
+
+      const response = await fetch("/api/orders/batch", {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) throw new Error("Failed to create order");
-      return response.json();
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create orders: ${errorText}`);
+      }
+      
+      const orders = await response.json();
+      
+      if (!Array.isArray(orders) || orders.length === 0) {
+        throw new Error("No orders were created");
+      }
+
+      return orders;
     },
-    onSuccess: (data) => {
-      navigate(`/order-confirmation?orderId=${data.id}`);
+    onSuccess: async (orders) => {
+      try {
+        await apiRequest("DELETE", "/api/cart");
+        queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+        
+        const orderIds = orders.map(o => o.id).join(",");
+        navigate(`/order-confirmation?orderId=${orderIds}`);
+      } catch (error) {
+        console.error("Error clearing cart or navigating:", error);
+        toast({
+          title: "Orders Placed",
+          description: "Your orders were placed successfully. Please refresh the page.",
+        });
+        setTimeout(() => navigate("/"), 2000);
+      }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Order creation error:", error);
       toast({
         title: "Order Failed",
-        description: "Unable to place your order. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to place your order. Please try again.",
         variant: "destructive",
       });
     },
@@ -61,21 +100,28 @@ export function PaymentStep({ addressData, product, storage, paymentConfig, onBa
       return;
     }
 
-    const formData = new FormData();
-    formData.append("customerName", addressData.customerName);
-    formData.append("phone", addressData.phone);
-    formData.append("address", addressData.address);
-    formData.append("pinCode", addressData.pinCode);
-    formData.append("productId", product.id);
-    formData.append("storage", storage.capacity);
-    formData.append("paymentType", paymentType);
-    formData.append("screenshot", screenshot);
-
-    createOrderMutation.mutate(formData);
+    createOrdersMutation.mutate();
   };
 
-  const paymentAmount = paymentType === "full" ? storage.price : paymentConfig.defaultAdvancePayment;
-  const remainingBalance = paymentType === "full" ? 0 : storage.price - paymentConfig.defaultAdvancePayment;
+  const calculateTotals = () => {
+    let fullPrice = 0;
+    
+    cartItems.forEach(item => {
+      const product = config.products.find(p => p.id === item.productId);
+      const storageOption = product?.storageOptions.find(s => s.capacity === item.storage);
+      if (storageOption) {
+        fullPrice += storageOption.price * item.quantity;
+      }
+    });
+    
+    const advancePrice = paymentConfig.defaultAdvancePayment * cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    const remainingBalance = fullPrice - (paymentType === "full" ? fullPrice : advancePrice);
+    
+    return { fullPrice, advancePrice, remainingBalance };
+  };
+
+  const totals = calculateTotals();
+  const paymentAmount = paymentType === "full" ? totals.fullPrice : totals.advancePrice;
 
   return (
     <Card className="rounded-2xl">
@@ -100,7 +146,7 @@ export function PaymentStep({ addressData, product, storage, paymentConfig, onBa
                   Pay Full Amount
                 </Label>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Pay ₹{storage.price.toLocaleString("en-IN")} now. No balance remaining.
+                  Pay ₹{totals.fullPrice.toLocaleString("en-IN")} now. No balance remaining.
                 </p>
               </div>
             </div>
@@ -112,8 +158,8 @@ export function PaymentStep({ addressData, product, storage, paymentConfig, onBa
                   Pay Advance (Recommended)
                 </Label>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Pay ₹{paymentConfig.defaultAdvancePayment.toLocaleString("en-IN")} now. 
-                  Balance ₹{(storage.price - paymentConfig.defaultAdvancePayment).toLocaleString("en-IN")} on delivery.
+                  Pay ₹{totals.advancePrice.toLocaleString("en-IN")} now (₹{paymentConfig.defaultAdvancePayment.toLocaleString("en-IN")} per item).
+                  Balance ₹{(totals.fullPrice - totals.advancePrice).toLocaleString("en-IN")} on delivery.
                 </p>
               </div>
             </div>
@@ -144,11 +190,11 @@ export function PaymentStep({ addressData, product, storage, paymentConfig, onBa
                 ₹{paymentAmount.toLocaleString("en-IN")}
               </span>
             </div>
-            {remainingBalance > 0 && (
+            {totals.remainingBalance > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Pay on Delivery:</span>
                 <span className="font-medium" data-testid="text-remaining-balance">
-                  ₹{remainingBalance.toLocaleString("en-IN")}
+                  ₹{totals.remainingBalance.toLocaleString("en-IN")}
                 </span>
               </div>
             )}
@@ -181,7 +227,7 @@ export function PaymentStep({ addressData, product, storage, paymentConfig, onBa
           variant="outline"
           size="lg"
           onClick={onBack}
-          disabled={createOrderMutation.isPending}
+          disabled={createOrdersMutation.isPending}
           className="flex-1 rounded-full"
           data-testid="button-back"
         >
@@ -191,11 +237,11 @@ export function PaymentStep({ addressData, product, storage, paymentConfig, onBa
         <Button
           size="lg"
           onClick={handleSubmit}
-          disabled={!screenshot || createOrderMutation.isPending}
+          disabled={!screenshot || createOrdersMutation.isPending}
           className="flex-1 rounded-full"
           data-testid="button-place-order"
         >
-          {createOrderMutation.isPending ? (
+          {createOrdersMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...

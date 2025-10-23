@@ -123,6 +123,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create batch orders with payment screenshot (for cart checkout)
+  app.post("/api/orders/batch", upload.single('screenshot'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "Payment screenshot is required" });
+      }
+
+      const { items, customerName, phone, address, pinCode, paymentType } = req.body;
+      
+      if (!items) {
+        return res.status(400).json({ error: "Items are required" });
+      }
+
+      let cartItems;
+      try {
+        cartItems = JSON.parse(items);
+      } catch (e) {
+        return res.status(400).json({ error: "Invalid items format" });
+      }
+
+      if (!Array.isArray(cartItems) || cartItems.length === 0) {
+        return res.status(400).json({ error: "Items must be a non-empty array" });
+      }
+
+      const configPath = path.join(process.cwd(), "config", "store-config.json");
+      const configData = await fs.readFile(configPath, "utf-8");
+      const config: StoreConfig = JSON.parse(configData);
+
+      const ordersData = [];
+
+      for (const item of cartItems) {
+        const product = config.products.find(p => p.id === item.productId);
+        if (!product) {
+          return res.status(404).json({ error: `Product ${item.productId} not found` });
+        }
+
+        const storageOption = product.storageOptions.find(s => s.capacity === item.storage);
+        if (!storageOption) {
+          return res.status(404).json({ error: `Storage option ${item.storage} not found for product ${item.productId}` });
+        }
+
+        const fullPrice = storageOption.price;
+        const paidAmount = paymentType === "full" 
+          ? fullPrice 
+          : config.paymentConfig.defaultAdvancePayment;
+        const remainingBalance = fullPrice - paidAmount;
+
+        ordersData.push({
+          customerName,
+          phone,
+          address,
+          pinCode,
+          productId: item.productId,
+          productName: product.displayName,
+          storage: item.storage,
+          fullPrice,
+          paidAmount,
+          remainingBalance,
+          paymentType,
+          paymentScreenshot: req.file.filename,
+        });
+      }
+
+      const orders = await storage.createOrders(ordersData);
+      res.status(201).json(orders);
+    } catch (error) {
+      console.error("Error creating batch orders:", error);
+      
+      if (req.file) {
+        try {
+          await fs.unlink(path.join(uploadDir, req.file.filename));
+        } catch (unlinkError) {
+          console.error("Error deleting uploaded file:", unlinkError);
+        }
+      }
+      
+      res.status(500).json({ error: "Failed to create orders" });
+    }
+  });
+
   // Create order with payment screenshot
   app.post("/api/orders", upload.single('screenshot'), async (req, res) => {
     try {

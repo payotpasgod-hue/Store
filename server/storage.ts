@@ -6,6 +6,7 @@ import path from "path";
 export interface IStorage {
   getOrder(id: string): Promise<Order | undefined>;
   createOrder(order: Omit<Order, "id" | "createdAt">): Promise<Order>;
+  createOrders(orders: Omit<Order, "id" | "createdAt">[]): Promise<Order[]>;
   getAllOrders(): Promise<Order[]>;
   
   getCartItems(): Promise<CartItem[]>;
@@ -77,6 +78,32 @@ export class MemStorage implements IStorage {
     this.orders.set(id, order);
     await this.saveOrders();
     return order;
+  }
+
+  async createOrders(ordersData: Omit<Order, "id" | "createdAt">[]): Promise<Order[]> {
+    const createdOrders: Order[] = [];
+    const originalOrdersSize = this.orders.size;
+    
+    try {
+      for (const orderData of ordersData) {
+        const id = randomUUID();
+        const order: Order = {
+          ...orderData,
+          id,
+          createdAt: new Date().toISOString(),
+        };
+        createdOrders.push(order);
+        this.orders.set(id, order);
+      }
+      
+      await this.saveOrders();
+      return createdOrders;
+    } catch (error) {
+      for (const order of createdOrders) {
+        this.orders.delete(order.id);
+      }
+      throw error;
+    }
   }
 
   async getAllOrders(): Promise<Order[]> {
