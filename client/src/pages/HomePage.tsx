@@ -9,6 +9,30 @@ export default function HomePage() {
     queryKey: ["/api/products"],
   });
 
+  const sortedProducts = products?.slice().sort((a, b) => {
+    const getModelNumber = (name: string) => {
+      const match = name.match(/iPhone\s+(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    };
+    
+    const modelA = getModelNumber(a.deviceName);
+    const modelB = getModelNumber(b.deviceName);
+    
+    if (modelA !== modelB) {
+      return modelB - modelA;
+    }
+    
+    const isPro = (name: string) => name.toLowerCase().includes('pro');
+    const isProMax = (name: string) => name.toLowerCase().includes('pro max');
+    
+    if (isProMax(a.deviceName) && !isProMax(b.deviceName)) return -1;
+    if (!isProMax(a.deviceName) && isProMax(b.deviceName)) return 1;
+    if (isPro(a.deviceName) && !isPro(b.deviceName)) return -1;
+    if (!isPro(a.deviceName) && isPro(b.deviceName)) return 1;
+    
+    return 0;
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <HeroSection />
@@ -20,7 +44,7 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
-            {products?.map((product) => (
+            {sortedProducts?.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
