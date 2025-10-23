@@ -71,13 +71,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get products list
+  // Get products list with price overrides applied
   app.get("/api/products", async (req, res) => {
     try {
       const configPath = path.join(process.cwd(), "config", "store-config.json");
       const configData = await fs.readFile(configPath, "utf-8");
       const config: StoreConfig = JSON.parse(configData);
-      res.json(config.products);
+      
+      // Get price overrides from storage
+      const priceOverrides = await storage.getProductPrices();
+      
+      // Apply price overrides to products
+      const productsWithOverrides = config.products.map(product => {
+        const updatedStorageOptions = product.storageOptions.map(storageOption => {
+          // Find matching price override
+          const override = priceOverrides.find(
+            po => po.productId === product.id && po.storage === storageOption.capacity
+          );
+          
+          if (override) {
+            // Apply the override
+            return {
+              ...storageOption,
+              price: override.price,
+              originalPrice: override.originalPrice,
+              discount: override.discount,
+            };
+          }
+          
+          return storageOption;
+        });
+        
+        return {
+          ...product,
+          storageOptions: updatedStorageOptions,
+        };
+      });
+      
+      res.json(productsWithOverrides);
     } catch (error) {
       console.error("Error loading products:", error);
       res.status(500).json({ error: "Failed to load products" });
