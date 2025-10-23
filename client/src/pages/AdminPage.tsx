@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -160,6 +160,14 @@ function TelegramSettings({ settings }: { settings?: AdminSettings }) {
   const { toast } = useToast();
   const [botToken, setBotToken] = useState(settings?.telegramBotToken || "");
   const [chatId, setChatId] = useState(settings?.telegramChatId || "");
+
+  // Sync state when settings data loads
+  useEffect(() => {
+    if (settings) {
+      setBotToken(settings.telegramBotToken || "");
+      setChatId(settings.telegramChatId || "");
+    }
+  }, [settings]);
 
   const updateSettings = useMutation({
     mutationFn: async (data: { telegramBotToken?: string; telegramChatId?: string }) => {
