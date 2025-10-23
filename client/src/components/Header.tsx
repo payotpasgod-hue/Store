@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Menu, Search, Heart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logoImage from "@assets/assets_task_01k897y00cej4bw0xjk1p17he7_1761246962_img_0_1761249465607.webp";
 
 export function Header() {
   return (
@@ -15,12 +16,8 @@ export function Header() {
           <Menu className="h-5 w-5" />
         </Button>
 
-        <Link href="/" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity" data-testid="link-home">
-          <div className="relative w-7 h-7 flex items-center justify-center">
-            <div className="absolute w-6 h-6 border-[3px] border-[#FF9500] rounded-full" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)' }} />
-            <div className="absolute w-6 h-6 border-[3px] border-transparent rounded-full" style={{ clipPath: 'polygon(0 50%, 100% 50%, 100% 100%, 0 100%)' }} />
-          </div>
-          <span className="font-bold text-lg tracking-tight">OVANTICA</span>
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" data-testid="link-home">
+          <img src={logoImage} alt="OnlyIphones" className="h-8 w-auto" />
         </Link>
 
         <div className="flex items-center gap-1 flex-shrink-0">
