@@ -61,8 +61,8 @@ export function ProductCard({ product }: ProductCardProps) {
               className="absolute top-2 right-2 bg-background text-foreground font-medium gap-0.5 z-10"
               data-testid={`badge-rating-${product.id}`}
             >
-              {product.rating}
               <Star className="h-3 w-3 fill-current text-[#FF9500]" />
+              {product.rating}
             </Badge>
           )}
           
