@@ -3,12 +3,13 @@
     {
       "id": "iphone-17-pro-max",
       "deviceName": "iPhone 17 Pro Max",
-      "displayName": "iPhone 17 Pro Max",
+      "displayName": "Buy Apple iPhone 17 Pro Max - Refurbished",
       "model": "A3102",
+      "rating": 4.8,
       "storageOptions": [
-        { "capacity": "256GB", "price": 144900 },
-        { "capacity": "512GB", "price": 164900 },
-        { "capacity": "1TB", "price": 184900 }
+        { "capacity": "256GB", "price": 109900, "originalPrice": 144900, "discount": 24 },
+        { "capacity": "512GB", "price": 124900, "originalPrice": 164900, "discount": 24 },
+        { "capacity": "1TB", "price": 144900, "originalPrice": 184900, "discount": 22 }
       ],
       "specs": [
         "6.9-inch Super Retina XDR display",
@@ -21,13 +22,14 @@
     {
       "id": "iphone-17-pro",
       "deviceName": "iPhone 17 Pro",
-      "displayName": "iPhone 17 Pro",
+      "displayName": "Buy Apple iPhone 17 Pro - Refurbished",
       "model": "A3101",
+      "rating": 4.7,
       "storageOptions": [
-        { "capacity": "128GB", "price": 134900 },
-        { "capacity": "256GB", "price": 144900 },
-        { "capacity": "512GB", "price": 164900 },
-        { "capacity": "1TB", "price": 184900 }
+        { "capacity": "128GB", "price": 99900, "originalPrice": 134900, "discount": 26 },
+        { "capacity": "256GB", "price": 109900, "originalPrice": 144900, "discount": 24 },
+        { "capacity": "512GB", "price": 124900, "originalPrice": 164900, "discount": 24 },
+        { "capacity": "1TB", "price": 144900, "originalPrice": 184900, "discount": 22 }
       ],
       "specs": [
         "6.3-inch Super Retina XDR display",
@@ -40,12 +42,13 @@
     {
       "id": "iphone-16-pro-max",
       "deviceName": "iPhone 16 Pro Max",
-      "displayName": "iPhone 16 Pro Max",
+      "displayName": "Buy Apple iPhone 16 Pro Max - Refurbished",
       "model": "A2849",
+      "rating": 4.6,
       "storageOptions": [
-        { "capacity": "256GB", "price": 134900 },
-        { "capacity": "512GB", "price": 154900 },
-        { "capacity": "1TB", "price": 174900 }
+        { "capacity": "256GB", "price": 99900, "originalPrice": 134900, "discount": 26 },
+        { "capacity": "512GB", "price": 114900, "originalPrice": 154900, "discount": 26 },
+        { "capacity": "1TB", "price": 134900, "originalPrice": 174900, "discount": 23 }
       ],
       "specs": [
         "6.9-inch Super Retina XDR display",
@@ -58,13 +61,14 @@
     {
       "id": "iphone-16-pro",
       "deviceName": "iPhone 16 Pro",
-      "displayName": "iPhone 16 Pro",
+      "displayName": "Buy Apple iPhone 16 Pro - Refurbished",
       "model": "A2848",
+      "rating": 4.5,
       "storageOptions": [
-        { "capacity": "128GB", "price": 119900 },
-        { "capacity": "256GB", "price": 134900 },
-        { "capacity": "512GB", "price": 154900 },
-        { "capacity": "1TB", "price": 174900 }
+        { "capacity": "128GB", "price": 87900, "originalPrice": 119900, "discount": 27 },
+        { "capacity": "256GB", "price": 99900, "originalPrice": 134900, "discount": 26 },
+        { "capacity": "512GB", "price": 114900, "originalPrice": 154900, "discount": 26 },
+        { "capacity": "1TB", "price": 134900, "originalPrice": 174900, "discount": 23 }
       ],
       "specs": [
         "6.3-inch Super Retina XDR display",
@@ -77,12 +81,13 @@
     {
       "id": "iphone-15-pro-max",
       "deviceName": "iPhone 15 Pro Max",
-      "displayName": "iPhone 15 Pro Max",
+      "displayName": "Buy Apple iPhone 15 Pro Max - Refurbished",
       "model": "A2849",
+      "rating": 4.4,
       "storageOptions": [
-        { "capacity": "256GB", "price": 124900 },
-        { "capacity": "512GB", "price": 144900 },
-        { "capacity": "1TB", "price": 164900 }
+        { "capacity": "256GB", "price": 89900, "originalPrice": 124900, "discount": 28 },
+        { "capacity": "512GB", "price": 104900, "originalPrice": 144900, "discount": 28 },
+        { "capacity": "1TB", "price": 124900, "originalPrice": 164900, "discount": 24 }
       ],
       "specs": [
         "6.7-inch Super Retina XDR display",
@@ -95,12 +100,13 @@
     {
       "id": "iphone-15",
       "deviceName": "iPhone 15",
-      "displayName": "iPhone 15",
+      "displayName": "Buy Apple iPhone 15 - Refurbished",
       "model": "A2846",
+      "rating": 4.3,
       "storageOptions": [
-        { "capacity": "128GB", "price": 79900 },
-        { "capacity": "256GB", "price": 89900 },
-        { "capacity": "512GB", "price": 109900 }
+        { "capacity": "128GB", "price": 57900, "originalPrice": 79900, "discount": 28 },
+        { "capacity": "256GB", "price": 64900, "originalPrice": 89900, "discount": 28 },
+        { "capacity": "512GB", "price": 79900, "originalPrice": 109900, "discount": 27 }
       ],
       "specs": [
         "6.1-inch Super Retina XDR display",
@@ -113,12 +119,13 @@
     {
       "id": "iphone-14-pro",
       "deviceName": "iPhone 14 Pro",
-      "displayName": "iPhone 14 Pro",
+      "displayName": "Buy Apple iPhone 14 Pro - Refurbished",
       "model": "A2890",
+      "rating": 4.2,
       "storageOptions": [
-        { "capacity": "128GB", "price": 99900 },
-        { "capacity": "256GB", "price": 109900 },
-        { "capacity": "512GB", "price": 129900 }
+        { "capacity": "128GB", "price": 72900, "originalPrice": 99900, "discount": 27 },
+        { "capacity": "256GB", "price": 79900, "originalPrice": 109900, "discount": 27 },
+        { "capacity": "512GB", "price": 94900, "originalPrice": 129900, "discount": 27 }
       ],
       "specs": [
         "6.1-inch Super Retina XDR display",
@@ -131,12 +138,13 @@
     {
       "id": "iphone-13",
       "deviceName": "iPhone 13",
-      "displayName": "iPhone 13",
+      "displayName": "Buy Apple iPhone 13 - Refurbished",
       "model": "A2482",
+      "rating": 4.0,
       "storageOptions": [
-        { "capacity": "128GB", "price": 59900 },
-        { "capacity": "256GB", "price": 69900 },
-        { "capacity": "512GB", "price": 89900 }
+        { "capacity": "128GB", "price": 42900, "originalPrice": 59900, "discount": 28 },
+        { "capacity": "256GB", "price": 49900, "originalPrice": 69900, "discount": 29 },
+        { "capacity": "512GB", "price": 64900, "originalPrice": 89900, "discount": 28 }
       ],
       "specs": [
         "6.1-inch Super Retina XDR display",

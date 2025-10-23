@@ -10,7 +10,10 @@ export const productSchema = z.object({
   storageOptions: z.array(z.object({
     capacity: z.string(), // e.g., "128GB", "256GB"
     price: z.number(), // in INR
+    originalPrice: z.number().optional(), // Original price before discount
+    discount: z.number().optional(), // Discount percentage
   })),
+  rating: z.number().optional(), // Product rating (e.g., 4.5)
   specs: z.array(z.string()),
   releaseDate: z.string().optional(),
 });
