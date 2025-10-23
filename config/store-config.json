@@ -1,158 +1,184 @@
 {
   "products": [
     {
-      "id": "iphone-17-pro-max",
-      "deviceName": "iPhone 17 Pro Max",
-      "displayName": "Buy Apple iPhone 17 Pro Max",
-      "model": "A3102",
-      "rating": 4.8,
+      "id": "iphone-13",
+      "deviceName": "iPhone 13",
+      "displayName": "Buy Apple iPhone 13",
+      "model": "A2456",
       "storageOptions": [
-        { "capacity": "256GB", "price": 109900, "originalPrice": 144900, "discount": 24 },
-        { "capacity": "512GB", "price": 124900, "originalPrice": 164900, "discount": 24 },
-        { "capacity": "1TB", "price": 144900, "originalPrice": 184900, "discount": 22 }
+        {
+          "capacity": "512GB",
+          "price": 142400,
+          "originalPrice": 162400,
+          "discount": 27
+        }
       ],
-      "specs": [
-        "6.9-inch Super Retina XDR display",
-        "A19 Pro chip",
-        "Pro camera system with 48MP main",
-        "Up to 33 hours video playback"
-      ],
-      "releaseDate": "September 2025"
-    },
-    {
-      "id": "iphone-17-pro",
-      "deviceName": "iPhone 17 Pro",
-      "displayName": "Buy Apple iPhone 17 Pro",
-      "model": "A3101",
-      "rating": 4.7,
-      "storageOptions": [
-        { "capacity": "128GB", "price": 99900, "originalPrice": 134900, "discount": 26 },
-        { "capacity": "256GB", "price": 109900, "originalPrice": 144900, "discount": 24 },
-        { "capacity": "512GB", "price": 124900, "originalPrice": 164900, "discount": 24 },
-        { "capacity": "1TB", "price": 144900, "originalPrice": 184900, "discount": 22 }
-      ],
-      "specs": [
-        "6.3-inch Super Retina XDR display",
-        "A19 Pro chip",
-        "Pro camera system with 48MP main",
-        "Up to 29 hours video playback"
-      ],
-      "releaseDate": "September 2025"
-    },
-    {
-      "id": "iphone-16-pro-max",
-      "deviceName": "iPhone 16 Pro Max",
-      "displayName": "Buy Apple iPhone 16 Pro Max",
-      "model": "A2849",
-      "rating": 4.6,
-      "storageOptions": [
-        { "capacity": "256GB", "price": 99900, "originalPrice": 134900, "discount": 26 },
-        { "capacity": "512GB", "price": 114900, "originalPrice": 154900, "discount": 26 },
-        { "capacity": "1TB", "price": 134900, "originalPrice": 174900, "discount": 23 }
-      ],
-      "specs": [
-        "6.9-inch Super Retina XDR display",
-        "A18 Pro chip with 6-core GPU",
-        "Advanced 48MP camera system",
-        "Up to 33 hours video playback"
-      ],
-      "releaseDate": "September 2024"
-    },
-    {
-      "id": "iphone-16-pro",
-      "deviceName": "iPhone 16 Pro",
-      "displayName": "Buy Apple iPhone 16 Pro",
-      "model": "A2848",
       "rating": 4.5,
-      "storageOptions": [
-        { "capacity": "128GB", "price": 87900, "originalPrice": 119900, "discount": 27 },
-        { "capacity": "256GB", "price": 99900, "originalPrice": 134900, "discount": 26 },
-        { "capacity": "512GB", "price": 114900, "originalPrice": 154900, "discount": 26 },
-        { "capacity": "1TB", "price": 134900, "originalPrice": 174900, "discount": 23 }
-      ],
       "specs": [
-        "6.3-inch Super Retina XDR display",
-        "A18 Pro chip",
-        "Advanced 48MP camera system",
-        "Up to 27 hours video playback"
+        "Sep 2021."
       ],
-      "releaseDate": "September 2024"
+      "releaseDate": "Sep 2021",
+      "imagePath": "/images/iphones/iphone-13.jpg"
     },
     {
-      "id": "iphone-15-pro-max",
-      "deviceName": "iPhone 15 Pro Max",
-      "displayName": "Buy Apple iPhone 15 Pro Max",
-      "model": "A2849",
+      "id": "iphone-13-pro",
+      "deviceName": "iPhone 13 Pro",
+      "displayName": "Buy Apple iPhone 13 Pro",
+      "model": "A2091",
+      "storageOptions": [
+        {
+          "capacity": "1024GB",
+          "price": 244800,
+          "originalPrice": 264800,
+          "discount": 28
+        }
+      ],
+      "rating": 4.2,
+      "specs": [
+        "Sep 2021."
+      ],
+      "releaseDate": "Sep 2021",
+      "imagePath": "/images/iphones/iphone-13-pro.jpg"
+    },
+    {
+      "id": "iphone-13-pro-max",
+      "deviceName": "iPhone 13 Pro Max",
+      "displayName": "Buy Apple iPhone 13 Pro Max",
+      "model": "A2463",
+      "storageOptions": [
+        {
+          "capacity": "1024GB",
+          "price": 244800,
+          "originalPrice": 264800,
+          "discount": 29
+        }
+      ],
       "rating": 4.4,
-      "storageOptions": [
-        { "capacity": "256GB", "price": 89900, "originalPrice": 124900, "discount": 28 },
-        { "capacity": "512GB", "price": 104900, "originalPrice": 144900, "discount": 28 },
-        { "capacity": "1TB", "price": 124900, "originalPrice": 164900, "discount": 24 }
-      ],
       "specs": [
-        "6.7-inch Super Retina XDR display",
-        "A17 Pro chip",
-        "Advanced 48MP camera system",
-        "Titanium design"
+        "Sep 2021."
       ],
-      "releaseDate": "September 2023"
+      "releaseDate": "Sep 2021",
+      "imagePath": "/images/iphones/iphone-13-pro-max.jpg"
     },
     {
-      "id": "iphone-15",
-      "deviceName": "iPhone 15",
-      "displayName": "Buy Apple iPhone 15",
-      "model": "A2846",
-      "rating": 4.3,
+      "id": "iphone-14-pro-max",
+      "deviceName": "iPhone 14 Pro Max",
+      "displayName": "Buy Apple iPhone 14 Pro Max",
+      "model": "A2068",
       "storageOptions": [
-        { "capacity": "128GB", "price": 57900, "originalPrice": 79900, "discount": 28 },
-        { "capacity": "256GB", "price": 64900, "originalPrice": 89900, "discount": 28 },
-        { "capacity": "512GB", "price": 79900, "originalPrice": 109900, "discount": 27 }
+        {
+          "capacity": "1024GB",
+          "price": 244800,
+          "originalPrice": 264800,
+          "discount": 25
+        }
       ],
+      "rating": 4.4,
       "specs": [
-        "6.1-inch Super Retina XDR display",
-        "A16 Bionic chip",
-        "Advanced dual-camera system",
-        "Dynamic Island"
+        "Sep 2022."
       ],
-      "releaseDate": "September 2023"
+      "releaseDate": "Sep 2022",
+      "imagePath": "/images/iphones/iphone-14-pro-max.jpg"
     },
     {
       "id": "iphone-14-pro",
       "deviceName": "iPhone 14 Pro",
       "displayName": "Buy Apple iPhone 14 Pro",
-      "model": "A2890",
-      "rating": 4.2,
+      "model": "A2935",
       "storageOptions": [
-        { "capacity": "128GB", "price": 72900, "originalPrice": 99900, "discount": 27 },
-        { "capacity": "256GB", "price": 79900, "originalPrice": 109900, "discount": 27 },
-        { "capacity": "512GB", "price": 94900, "originalPrice": 129900, "discount": 27 }
+        {
+          "capacity": "1024GB",
+          "price": 244800,
+          "originalPrice": 264800,
+          "discount": 26
+        }
       ],
+      "rating": 4.7,
       "specs": [
-        "6.1-inch Super Retina XDR display",
-        "A16 Bionic chip",
-        "Pro camera system 48MP",
-        "Dynamic Island"
+        "Sep 2022."
       ],
-      "releaseDate": "September 2022"
+      "releaseDate": "Sep 2022",
+      "imagePath": "/images/iphones/iphone-14-pro.jpg"
     },
     {
-      "id": "iphone-13",
-      "deviceName": "iPhone 13",
-      "displayName": "Buy Apple iPhone 13",
-      "model": "A2482",
-      "rating": 4.0,
+      "id": "iphone-15-pro-max",
+      "deviceName": "iPhone 15 Pro Max",
+      "displayName": "Buy Apple iPhone 15 Pro Max",
+      "model": "A2986",
       "storageOptions": [
-        { "capacity": "128GB", "price": 42900, "originalPrice": 59900, "discount": 28 },
-        { "capacity": "256GB", "price": 49900, "originalPrice": 69900, "discount": 29 },
-        { "capacity": "512GB", "price": 64900, "originalPrice": 89900, "discount": 28 }
+        {
+          "capacity": "1024GB",
+          "price": 244800,
+          "originalPrice": 264800,
+          "discount": 27
+        }
       ],
+      "rating": 4.1,
       "specs": [
-        "6.1-inch Super Retina XDR display",
-        "A15 Bionic chip",
-        "Advanced dual-camera system",
-        "Ceramic Shield front cover"
+        "Sep 2023."
       ],
-      "releaseDate": "September 2021"
+      "releaseDate": "Sep 2023",
+      "imagePath": "/images/iphones/iphone-15-pro-max.jpg"
+    },
+    {
+      "id": "iphone-15-pro",
+      "deviceName": "iPhone 15 Pro",
+      "displayName": "Buy Apple iPhone 15 Pro",
+      "model": "A2243",
+      "storageOptions": [
+        {
+          "capacity": "1024GB",
+          "price": 244800,
+          "originalPrice": 264800,
+          "discount": 25
+        }
+      ],
+      "rating": 4.4,
+      "specs": [
+        "Sep 2023."
+      ],
+      "releaseDate": "Sep 2023",
+      "imagePath": "/images/iphones/iphone-15-pro.jpg"
+    },
+    {
+      "id": "iphone-11",
+      "deviceName": "iPhone 11",
+      "displayName": "Buy Apple iPhone 11",
+      "model": "A2628",
+      "storageOptions": [
+        {
+          "capacity": "256GB",
+          "price": 91200,
+          "originalPrice": 111200,
+          "discount": 26
+        }
+      ],
+      "rating": 4.8,
+      "specs": [
+        "Sep 2019."
+      ],
+      "releaseDate": "Sep 2019",
+      "imagePath": "/images/iphones/iphone-11.jpg"
+    },
+    {
+      "id": "iphone-11-pro-max",
+      "deviceName": "iPhone 11 Pro Max",
+      "displayName": "Buy Apple iPhone 11 Pro Max",
+      "model": "A2182",
+      "storageOptions": [
+        {
+          "capacity": "512GB",
+          "price": 142400,
+          "originalPrice": 162400,
+          "discount": 28
+        }
+      ],
+      "rating": 4.2,
+      "specs": [
+        "Sep 2019."
+      ],
+      "releaseDate": "Sep 2019",
+      "imagePath": "/images/iphones/iphone-11-pro-max.jpg"
     }
   ],
   "paymentConfig": {

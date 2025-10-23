@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
-import type { Product, MobileDeviceImage } from "@shared/schema";
-import { Loader2, Star, Shield } from "lucide-react";
+import type { Product } from "@shared/schema";
+import { Star, Shield } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
@@ -13,10 +12,6 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const [, setLocation] = useLocation();
   const [selectedStorage] = useState(product.storageOptions[0]);
-
-  const { data: deviceImage, isLoading } = useQuery<MobileDeviceImage>({
-    queryKey: ["/api/device-image", product.deviceName],
-  });
 
   const handleCardClick = () => {
     setLocation(`/checkout?product=${product.id}&storage=${selectedStorage.capacity}`);
@@ -30,11 +25,9 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       <CardContent className="p-0">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-muted/20 to-muted/5 flex items-center justify-center">
-          {isLoading ? (
-            <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" data-testid={`loader-image-${product.id}`} />
-          ) : deviceImage?.data?.image ? (
+          {product.imagePath ? (
             <img
-              src={deviceImage.data.image}
+              src={product.imagePath}
               alt={product.displayName}
               className="w-full h-full object-contain p-6"
               data-testid={`img-product-${product.id}`}

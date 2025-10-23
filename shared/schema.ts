@@ -16,6 +16,7 @@ export const productSchema = z.object({
   rating: z.number().optional(), // Product rating (e.g., 4.5)
   specs: z.array(z.string()),
   releaseDate: z.string().optional(),
+  imagePath: z.string().optional(), // Path to local image file
 });
 
 export type Product = z.infer<typeof productSchema>;
