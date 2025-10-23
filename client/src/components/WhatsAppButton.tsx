@@ -7,13 +7,13 @@ export function WhatsAppButton() {
   };
 
   return (
-    <Button
+    <button
       onClick={handleWhatsAppClick}
-      size="icon"
-      className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-[#25D366] hover:bg-[#25D366]/90 shadow-lg z-50"
+      className="fixed bottom-5 right-5 h-14 w-14 rounded-full bg-[#25D366] hover:bg-[#22b55a] shadow-xl flex items-center justify-center transition-all"
+      style={{ zIndex: 9999 }}
       data-testid="button-whatsapp"
     >
       <MessageCircle className="h-7 w-7 text-white" />
-    </Button>
+    </button>
   );
 }

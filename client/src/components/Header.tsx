@@ -6,7 +6,7 @@ import logoImage from "@assets/assets_task_01k897y00cej4bw0xjk1p17he7_1761246962
 export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-background border-b">
-      <div className="px-4 h-14 flex items-center justify-between gap-4">
+      <div className="px-4 h-20 flex items-center justify-between gap-4">
         <Button 
           variant="ghost" 
           size="icon"
@@ -17,7 +17,7 @@ export function Header() {
         </Button>
 
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" data-testid="link-home">
-          <img src={logoImage} alt="OnlyIphones" className="h-8 w-auto" />
+          <img src={logoImage} alt="OnlyIphones" className="h-16 w-auto" />
         </Link>
 
         <div className="flex items-center gap-1 flex-shrink-0">
