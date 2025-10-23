@@ -15,7 +15,6 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const [selectedStorage, setSelectedStorage] = useState(product.storageOptions[0].capacity);
-  const [selectedColor, setSelectedColor] = useState(product.colorOptions?.[0] || "");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -24,7 +23,6 @@ export function ProductCard({ product }: ProductCardProps) {
       return apiRequest("POST", "/api/cart", {
         productId: product.id,
         storage: selectedStorage,
-        color: selectedColor || undefined,
         quantity: 1,
       });
     },
@@ -89,29 +87,6 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.displayName}
           </h3>
           
-          {product.colorOptions && product.colorOptions.length > 0 && (
-            <Select value={selectedColor} onValueChange={setSelectedColor}>
-              <SelectTrigger 
-                className="w-full h-8"
-                data-testid={`select-color-${product.id}`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <SelectValue placeholder="Select color" />
-              </SelectTrigger>
-              <SelectContent>
-                {product.colorOptions.map((color) => (
-                  <SelectItem 
-                    key={color} 
-                    value={color}
-                    data-testid={`option-color-${product.id}-${color}`}
-                  >
-                    {color}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
           {product.storageOptions.length > 1 && (
             <Select value={selectedStorage} onValueChange={setSelectedStorage}>
               <SelectTrigger 
