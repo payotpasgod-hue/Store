@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "productId": "iphone-13",
+    "storage": "512GB",
+    "quantity": 1,
+    "id": "87e1a03b-ae71-4e3a-8d94-4f0729a003a7",
+    "addedAt": "2025-10-23T21:03:18.900Z"
+  }
+]
