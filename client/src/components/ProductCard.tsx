@@ -55,27 +55,18 @@ export function ProductCard({ product }: ProductCardProps) {
       data-testid={`card-product-${product.id}`}
     >
       <CardContent className="p-0">
-        <div className="relative aspect-[3/4] bg-gradient-to-br from-muted/20 to-muted/5 flex items-center justify-center">
+        <div className="relative aspect-[3/4] bg-gradient-to-br from-muted/20 to-muted/5 flex items-center justify-center overflow-hidden">
           {product.imagePath ? (
             <img
               src={product.imagePath}
               alt={product.displayName}
-              className="w-full h-full object-contain p-6"
+              className="w-full h-full object-contain object-center p-4"
               data-testid={`img-product-${product.id}`}
             />
           ) : (
             <div className="text-center p-6">
               <span className="material-icons text-5xl text-muted-foreground mb-2">smartphone</span>
             </div>
-          )}
-          
-          {storageOption.discount && (
-            <Badge 
-              className="absolute top-2 left-2 bg-background text-foreground font-semibold"
-              data-testid={`badge-discount-${product.id}`}
-            >
-              -{storageOption.discount}% OFF
-            </Badge>
           )}
           
           {product.rating && (
@@ -132,6 +123,15 @@ export function ProductCard({ product }: ProductCardProps) {
             <Shield className="h-3.5 w-3.5 text-[#FF9500]" />
             <span className="font-medium">FREE 1 Year Warranty</span>
           </div>
+
+          {storageOption.discount && (
+            <Badge 
+              className="bg-[#22C55E]/10 text-[#22C55E] hover:bg-[#22C55E]/20 font-semibold border-0"
+              data-testid={`badge-discount-${product.id}`}
+            >
+              -{storageOption.discount}% OFF
+            </Badge>
+          )}
 
           <Button 
             className="w-full rounded-full"
