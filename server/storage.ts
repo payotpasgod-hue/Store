@@ -1,4 +1,4 @@
-import { type Order, type CartItem } from "@shared/schema";
+import { type Order, type CartItem, type AdminSettings, type ProductPriceOverride } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
@@ -14,6 +14,13 @@ export interface IStorage {
   updateCartItem(id: string, quantity: number): Promise<CartItem | undefined>;
   removeCartItem(id: string): Promise<boolean>;
   clearCart(): Promise<void>;
+  
+  getAdminSettings(): Promise<AdminSettings>;
+  updateAdminSettings(settings: Partial<Omit<AdminSettings, "id" | "updatedAt">>): Promise<AdminSettings>;
+  
+  getProductPrices(): Promise<ProductPriceOverride[]>;
+  updateProductPrice(override: ProductPriceOverride): Promise<ProductPriceOverride>;
+  deleteProductPrice(productId: string, storage: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -21,14 +28,24 @@ export class MemStorage implements IStorage {
   private ordersFilePath: string;
   private cartItems: Map<string, CartItem>;
   private cartFilePath: string;
+  private adminSettings: AdminSettings | null;
+  private adminSettingsFilePath: string;
+  private productPrices: Map<string, ProductPriceOverride>;
+  private productPricesFilePath: string;
 
   constructor() {
     this.orders = new Map();
     this.ordersFilePath = path.join(process.cwd(), "data", "orders.json");
     this.cartItems = new Map();
     this.cartFilePath = path.join(process.cwd(), "data", "cart.json");
+    this.adminSettings = null;
+    this.adminSettingsFilePath = path.join(process.cwd(), "data", "admin-settings.json");
+    this.productPrices = new Map();
+    this.productPricesFilePath = path.join(process.cwd(), "data", "product-prices.json");
     this.loadOrders();
     this.loadCart();
+    this.loadAdminSettings();
+    this.loadProductPrices();
   }
 
   private async loadOrders() {
@@ -62,6 +79,43 @@ export class MemStorage implements IStorage {
   private async saveCart() {
     const cartArray = Array.from(this.cartItems.values());
     await fs.writeFile(this.cartFilePath, JSON.stringify(cartArray, null, 2));
+  }
+
+  private async loadAdminSettings() {
+    try {
+      await fs.mkdir(path.dirname(this.adminSettingsFilePath), { recursive: true });
+      const data = await fs.readFile(this.adminSettingsFilePath, "utf-8");
+      this.adminSettings = JSON.parse(data);
+    } catch (error) {
+      this.adminSettings = {
+        id: "default",
+        updatedAt: new Date().toISOString(),
+      };
+      await this.saveAdminSettings();
+    }
+  }
+
+  private async saveAdminSettings() {
+    await fs.writeFile(this.adminSettingsFilePath, JSON.stringify(this.adminSettings, null, 2));
+  }
+
+  private async loadProductPrices() {
+    try {
+      await fs.mkdir(path.dirname(this.productPricesFilePath), { recursive: true });
+      const data = await fs.readFile(this.productPricesFilePath, "utf-8");
+      const pricesArray: ProductPriceOverride[] = JSON.parse(data);
+      pricesArray.forEach(price => {
+        const key = `${price.productId}-${price.storage}`;
+        this.productPrices.set(key, price);
+      });
+    } catch (error) {
+      await this.saveProductPrices();
+    }
+  }
+
+  private async saveProductPrices() {
+    const pricesArray = Array.from(this.productPrices.values());
+    await fs.writeFile(this.productPricesFilePath, JSON.stringify(pricesArray, null, 2));
   }
 
   async getOrder(id: string): Promise<Order | undefined> {
@@ -160,6 +214,49 @@ export class MemStorage implements IStorage {
   async clearCart(): Promise<void> {
     this.cartItems.clear();
     await this.saveCart();
+  }
+
+  async getAdminSettings(): Promise<AdminSettings> {
+    if (!this.adminSettings) {
+      this.adminSettings = {
+        id: "default",
+        updatedAt: new Date().toISOString(),
+      };
+      await this.saveAdminSettings();
+    }
+    return this.adminSettings;
+  }
+
+  async updateAdminSettings(settings: Partial<Omit<AdminSettings, "id" | "updatedAt">>): Promise<AdminSettings> {
+    const current = await this.getAdminSettings();
+    this.adminSettings = {
+      ...current,
+      ...settings,
+      id: "default",
+      updatedAt: new Date().toISOString(),
+    };
+    await this.saveAdminSettings();
+    return this.adminSettings;
+  }
+
+  async getProductPrices(): Promise<ProductPriceOverride[]> {
+    return Array.from(this.productPrices.values());
+  }
+
+  async updateProductPrice(override: ProductPriceOverride): Promise<ProductPriceOverride> {
+    const key = `${override.productId}-${override.storage}`;
+    this.productPrices.set(key, override);
+    await this.saveProductPrices();
+    return override;
+  }
+
+  async deleteProductPrice(productId: string, storage: string): Promise<boolean> {
+    const key = `${productId}-${storage}`;
+    const deleted = this.productPrices.delete(key);
+    if (deleted) {
+      await this.saveProductPrices();
+    }
+    return deleted;
   }
 }
 
