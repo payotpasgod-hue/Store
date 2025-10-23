@@ -38,6 +38,9 @@ interface StoreConfig {
 }
 
 const IPHONE_MODELS = [
+  "iPhone 12",
+  "iPhone 12 Pro",
+  "iPhone 12 Pro Max",
   "iPhone 13",
   "iPhone 13 Pro",
   "iPhone 13 Pro Max",
@@ -50,6 +53,9 @@ const IPHONE_MODELS = [
   "iPhone 16",
   "iPhone 16 Pro",
   "iPhone 16 Pro Max",
+  "iPhone 17",
+  "iPhone 17 Pro",
+  "iPhone 17 Pro Max",
 ];
 
 async function fetchPhone(modelName: string, apiKey: string): Promise<MobileAPIDevice | null> {
