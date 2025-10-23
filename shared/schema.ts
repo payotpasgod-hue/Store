@@ -70,11 +70,30 @@ export const insertOrderSchema = z.object({
 
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
-// MobileAPI.dev response type
+// MobileAPI.dev response types
 export type MobileDeviceImage = {
   status: boolean;
   data: {
     image: string;
     name: string;
   };
+};
+
+export type MobileAPIPhone = {
+  name: string;
+  image: string;
+  specs: {
+    cpu?: string;
+    ram?: string;
+    storage?: string;
+    display?: string;
+    battery?: string;
+    camera?: string;
+  };
+  releaseDate?: string;
+};
+
+export type MobileAPIPhonesResponse = {
+  status: boolean;
+  data: MobileAPIPhone[];
 };

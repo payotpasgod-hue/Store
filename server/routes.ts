@@ -58,6 +58,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fetch iPhone models from MobileAPI.dev
+  app.get("/api/phones", async (req, res) => {
+    try {
+      const apiKey = process.env.MOBILEAPI_DEV_KEY;
+
+      if (!apiKey) {
+        return res.status(500).json({ error: "API key not configured" });
+      }
+
+      const response = await fetch(
+        'https://mobileapi.dev/devices/search/?name=iPhone',
+        {
+          headers: {
+            'Authorization': `Token ${apiKey}`,
+            'Accept': 'application/json',
+          }
+        }
+      );
+
+      if (!response.ok) {
+        console.error("MobileAPI.dev error:", response.status, response.statusText);
+        return res.status(500).json({ error: "Failed to fetch iPhone models" });
+      }
+
+      const data = await response.json();
+      
+      // Filter to only include iPhone 13-17 models
+      const filteredPhones = data.data?.filter((phone: any) => {
+        const name = phone.name.toLowerCase();
+        return (
+          name.includes('iphone 13') ||
+          name.includes('iphone 14') ||
+          name.includes('iphone 15') ||
+          name.includes('iphone 16') ||
+          name.includes('iphone 17')
+        );
+      }) || [];
+
+      res.json({
+        status: true,
+        data: filteredPhones
+      });
+    } catch (error) {
+      console.error("Error fetching phones:", error);
+      res.status(500).json({ error: "Failed to fetch iPhone models" });
+    }
+  });
+
   // Proxy endpoint for MobileAPI.dev to avoid CORS and protect API key
   app.get("/api/device-image/:deviceName", async (req, res) => {
     try {
