@@ -30,5 +30,21 @@
     "paymentScreenshot": "payment-1761256298951-425731835.jpeg",
     "id": "3f0bf92a-4c79-4220-a438-3e76a3dbd270",
     "createdAt": "2025-10-23T21:51:38.966Z"
+  },
+  {
+    "customerName": "Blain Bowman",
+    "phone": "9296998324",
+    "address": "7645 Milldale Cir",
+    "pinCode": "956266",
+    "productId": "iphone-15-pro-max",
+    "productName": "Buy Apple iPhone 15 Pro Max",
+    "storage": "1024GB",
+    "fullPrice": 244800,
+    "paidAmount": 550,
+    "remainingBalance": 244250,
+    "paymentType": "advance",
+    "paymentScreenshot": "payment-1761259892867-443888429.jpeg",
+    "id": "e30054e6-910f-4d40-b722-79bdffeaa77b",
+    "createdAt": "2025-10-23T22:51:32.883Z"
   }
 ]
