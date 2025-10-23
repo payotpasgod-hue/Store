@@ -14,5 +14,21 @@
     "paymentScreenshot": "payment-1761247045046-739687741.png",
     "id": "60eb3551-37dc-4943-8d60-29fed65a62a8",
     "createdAt": "2025-10-23T19:17:25.049Z"
+  },
+  {
+    "customerName": "Blain Bowman",
+    "phone": "9296998324",
+    "address": "7645 Milldale Cir",
+    "pinCode": "956261",
+    "productId": "iphone-13-pro",
+    "productName": "Buy Apple iPhone 13 Pro",
+    "storage": "1024GB",
+    "fullPrice": 244800,
+    "paidAmount": 244800,
+    "remainingBalance": 0,
+    "paymentType": "full",
+    "paymentScreenshot": "payment-1761256298951-425731835.jpeg",
+    "id": "3f0bf92a-4c79-4220-a438-3e76a3dbd270",
+    "createdAt": "2025-10-23T21:51:38.966Z"
   }
 ]
