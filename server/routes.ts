@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { promises as fs } from "fs";
 import path from "path";
 import multer from "multer";
-import { insertOrderSchema, insertCartItemSchema, type StoreConfig, type Product } from "@shared/schema";
+import { insertOrderSchema, insertCartItemSchema, insertAdminSettingsSchema, insertProductPriceOverrideSchema, type StoreConfig, type Product } from "@shared/schema";
 import { z } from "zod";
 import { sendOrderNotification, sendBatchOrderNotification } from "./telegram";
 
@@ -31,6 +31,31 @@ const upload = multer({
     }
   }
 });
+
+// Configure multer for QR code uploads
+const qrUploadDir = path.join(process.cwd(), "uploads", "qr-codes");
+fs.mkdir(qrUploadDir, { recursive: true }).catch(console.error);
+
+const qrUpload = multer({
+  storage: multer.diskStorage({
+    destination: qrUploadDir,
+    filename: (req, file, cb) => {
+      cb(null, 'upi-qr' + path.extname(file.originalname));
+    }
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
+
+const ADMIN_PIN = "1161";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get store configuration (products + payment config)
@@ -300,6 +325,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching orders:", error);
       res.status(500).json({ error: "Failed to fetch orders" });
     }
+  });
+
+  // Admin PIN verification
+  app.post("/api/admin/verify-pin", async (req, res) => {
+    try {
+      const { pin } = req.body;
+      if (pin === ADMIN_PIN) {
+        res.json({ success: true });
+      } else {
+        res.status(401).json({ success: false, error: "Invalid PIN" });
+      }
+    } catch (error) {
+      console.error("Error verifying PIN:", error);
+      res.status(500).json({ error: "Failed to verify PIN" });
+    }
+  });
+
+  // Get admin settings
+  app.get("/api/admin/settings", async (req, res) => {
+    try {
+      const settings = await storage.getAdminSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching admin settings:", error);
+      res.status(500).json({ error: "Failed to fetch admin settings" });
+    }
+  });
+
+  // Update admin settings
+  app.post("/api/admin/settings", async (req, res) => {
+    try {
+      const settingsData = insertAdminSettingsSchema.parse(req.body);
+      const settings = await storage.updateAdminSettings(settingsData);
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid settings data", details: error.errors });
+      }
+      console.error("Error updating admin settings:", error);
+      res.status(500).json({ error: "Failed to update admin settings" });
+    }
+  });
+
+  // Upload QR code
+  app.post("/api/admin/qr-upload", qrUpload.single("qrImage"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      const qrImagePath = `/uploads/qr-codes/${req.file.filename}`;
+      const settings = await storage.updateAdminSettings({ upiQrImage: qrImagePath });
+      res.json({ success: true, path: qrImagePath, settings });
+    } catch (error) {
+      console.error("Error uploading QR code:", error);
+      res.status(500).json({ error: "Failed to upload QR code" });
+    }
+  });
+
+  // Get product price overrides
+  app.get("/api/admin/product-prices", async (req, res) => {
+    try {
+      const prices = await storage.getProductPrices();
+      res.json(prices);
+    } catch (error) {
+      console.error("Error fetching product prices:", error);
+      res.status(500).json({ error: "Failed to fetch product prices" });
+    }
+  });
+
+  // Update product price
+  app.post("/api/admin/product-prices", async (req, res) => {
+    try {
+      const priceData = insertProductPriceOverrideSchema.parse(req.body);
+      const price = await storage.updateProductPrice(priceData);
+      res.json(price);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid price data", details: error.errors });
+      }
+      console.error("Error updating product price:", error);
+      res.status(500).json({ error: "Failed to update product price" });
+    }
+  });
+
+  // Delete product price override
+  app.delete("/api/admin/product-prices/:productId/:storage", async (req, res) => {
+    try {
+      const { productId, storage: storageCapacity } = req.params;
+      const deleted = await storage.deleteProductPrice(productId, storageCapacity);
+      if (!deleted) {
+        return res.status(404).json({ error: "Price override not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting product price:", error);
+      res.status(500).json({ error: "Failed to delete product price" });
+    }
+  });
+
+  // Serve uploaded files
+  app.use("/uploads", (req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    next();
+  });
+  app.use("/uploads", (req, res, next) => {
+    const uploadsPath = path.join(process.cwd(), "uploads");
+    return require("express").static(uploadsPath)(req, res, next);
   });
 
   const httpServer = createServer(app);
