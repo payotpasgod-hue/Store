@@ -56,6 +56,16 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       <CardContent className="p-0">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-muted/20 to-muted/5 flex items-center justify-center overflow-hidden">
+          {product.rating && (
+            <Badge 
+              className="absolute top-2 right-2 bg-background text-foreground font-medium gap-0.5 z-10"
+              data-testid={`badge-rating-${product.id}`}
+            >
+              {product.rating}
+              <Star className="h-3 w-3 fill-current text-[#FF9500]" />
+            </Badge>
+          )}
+          
           {product.imagePath ? (
             <img
               src={product.imagePath}
@@ -67,16 +77,6 @@ export function ProductCard({ product }: ProductCardProps) {
             <div className="text-center p-6">
               <span className="material-icons text-5xl text-muted-foreground mb-2">smartphone</span>
             </div>
-          )}
-          
-          {product.rating && (
-            <Badge 
-              className="absolute top-2 right-2 bg-background text-foreground font-medium gap-0.5"
-              data-testid={`badge-rating-${product.id}`}
-            >
-              {product.rating}
-              <Star className="h-3 w-3 fill-current text-[#FF9500]" />
-            </Badge>
           )}
         </div>
 
