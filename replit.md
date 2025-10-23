@@ -21,6 +21,8 @@ A modern, mobile-first e-commerce platform for selling iPhone 13 to iPhone 17 ex
 6. Payment screenshot upload during checkout
 7. Order confirmation with balance payment instructions
 8. India-focused (INR pricing, PIN code validation)
+9. Telegram order notifications (instant alerts with all order details)
+10. Color selection for iPhone models (hidden on homepage, visible in cart/checkout)
 
 ## Recent Changes (October 23, 2025)
 
@@ -34,6 +36,19 @@ A modern, mobile-first e-commerce platform for selling iPhone 13 to iPhone 17 ex
 - **Backend APIs**: Implemented all endpoints for product management, order creation, and MobileAPI.dev proxy
 - **Configuration System**: Created JSON-based config for easy product and payment management
 - **File Upload**: Integrated multer for payment screenshot handling
+
+### Color Selection Feature
+- Added color options to product schema and configuration
+- Implemented color selection in cart and checkout flows
+- Color selector intentionally hidden on homepage per user preference
+- Each iPhone model has authentic Apple colors (e.g., Titanium variants for Pro models)
+
+### Telegram Notifications
+- **Service**: Created `server/telegram.ts` with HTML-escaped message formatting
+- **Integration**: Automatic notifications sent to owner's Telegram when orders are placed
+- **Content**: Includes customer name, phone, address, product details, payment info, and screenshot filename
+- **Security**: All user-supplied fields properly escaped to prevent message corruption
+- **Reliability**: Fire-and-forget async pattern ensures order creation is never blocked
 
 ## Project Structure
 
@@ -51,7 +66,8 @@ A modern, mobile-first e-commerce platform for selling iPhone 13 to iPhone 17 ex
 │   └── lib/                # Utilities
 ├── server/
 │   ├── routes.ts           # API endpoints
-│   └── storage.ts          # Data persistence layer
+│   ├── storage.ts          # Data persistence layer
+│   └── telegram.ts         # Telegram notification service
 ├── shared/
 │   └── schema.ts           # Shared TypeScript types
 ├── config/
@@ -67,6 +83,8 @@ A modern, mobile-first e-commerce platform for selling iPhone 13 to iPhone 17 ex
 ### Environment Variables
 - `MOBILEAPI_DEV_KEY`: API key for MobileAPI.dev (required)
 - `SESSION_SECRET`: Session secret for Express
+- `TELEGRAM_BOT_TOKEN`: Telegram bot token for order notifications (required for notifications)
+- `TELEGRAM_CHAT_ID`: Telegram chat ID to receive notifications (required for notifications)
 
 ### Store Configuration (`config/store-config.json`)
 Easily editable JSON file containing:
