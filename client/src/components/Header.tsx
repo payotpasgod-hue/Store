@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Menu, Search, Heart, User, ShoppingCart } from "lucide-react";
+import { Menu, Heart, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { CartItem } from "@shared/schema";
@@ -28,17 +28,10 @@ export function Header() {
         </Button>
 
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity" data-testid="link-home">
-          <img src={logoImage} alt="OnlyIphones" className="h-16 w-auto" />
+          <img src={logoImage} alt="OnlyIphones" className="h-24 w-auto" />
         </Link>
 
         <div className="flex items-center gap-1 flex-shrink-0">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            data-testid="button-search"
-          >
-            <Search className="h-5 w-5" />
-          </Button>
           <Button 
             variant="ghost" 
             size="icon"
@@ -62,13 +55,6 @@ export function Header() {
                 {cartCount}
               </Badge>
             )}
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            data-testid="button-user"
-          >
-            <User className="h-5 w-5" />
           </Button>
         </div>
       </div>
