@@ -55,7 +55,7 @@ export function ProductCard({ product }: ProductCardProps) {
       data-testid={`card-product-${product.id}`}
     >
       <CardContent className="p-0">
-        <div className="relative aspect-[3/4] bg-gradient-to-br from-muted/20 to-muted/5 flex items-center justify-center overflow-hidden">
+        <div className="relative aspect-[3/4] bg-gradient-to-br from-muted/20 to-muted/5 overflow-hidden">
           {product.rating && (
             <Badge 
               className="absolute top-2 right-2 bg-background text-foreground font-medium gap-0.5 z-10"
@@ -66,18 +66,20 @@ export function ProductCard({ product }: ProductCardProps) {
             </Badge>
           )}
           
-          {product.imagePath ? (
-            <img
-              src={product.imagePath}
-              alt={product.displayName}
-              className="w-full h-full object-contain object-center p-4"
-              data-testid={`img-product-${product.id}`}
-            />
-          ) : (
-            <div className="text-center p-6">
-              <span className="material-icons text-5xl text-muted-foreground mb-2">smartphone</span>
-            </div>
-          )}
+          <div className="w-full h-full flex items-center justify-center">
+            {product.imagePath ? (
+              <img
+                src={product.imagePath}
+                alt={product.displayName}
+                className="w-full h-full object-contain object-center p-4"
+                data-testid={`img-product-${product.id}`}
+              />
+            ) : (
+              <div className="text-center p-6">
+                <span className="material-icons text-5xl text-muted-foreground mb-2">smartphone</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="p-3 space-y-3">
