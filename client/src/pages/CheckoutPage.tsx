@@ -43,7 +43,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!product || !selectedStorage) {
+  if (!product || !selectedStorage || !config) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Product not found</p>
