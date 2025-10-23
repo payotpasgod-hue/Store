@@ -1,4 +1,7 @@
 import type { Order } from "@shared/schema";
+import fs from "fs";
+import path from "path";
+import { FormData, File } from "formdata-node";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -21,19 +24,30 @@ export async function sendOrderNotification(order: Order): Promise<boolean> {
 
   try {
     const message = formatOrderMessage(order);
+    const screenshotPath = path.join(process.cwd(), "uploads", "payment-screenshots", order.paymentScreenshot);
     
+    // Check if screenshot file exists
+    if (!fs.existsSync(screenshotPath)) {
+      console.error("Screenshot file not found:", screenshotPath);
+      return false;
+    }
+
+    // Read the screenshot file
+    const fileBuffer = await fs.promises.readFile(screenshotPath);
+    const fileName = order.paymentScreenshot;
+    
+    // Create FormData and append the photo
+    const formData = new FormData();
+    formData.append('chat_id', TELEGRAM_CHAT_ID);
+    formData.append('photo', new File([fileBuffer], fileName, { type: 'image/jpeg' }));
+    formData.append('caption', message);
+    formData.append('parse_mode', 'HTML');
+
     const response = await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: message,
-          parse_mode: "HTML",
-        }),
+        body: formData as any,
       }
     );
 
@@ -43,7 +57,7 @@ export async function sendOrderNotification(order: Order): Promise<boolean> {
       return false;
     }
 
-    console.log("Order notification sent to Telegram successfully");
+    console.log("Order notification with screenshot sent to Telegram successfully");
     return true;
   } catch (error) {
     console.error("Error sending Telegram notification:", error);
@@ -59,19 +73,31 @@ export async function sendBatchOrderNotification(orders: Order[]): Promise<boole
 
   try {
     const message = formatBatchOrderMessage(orders);
+    const firstOrder = orders[0];
+    const screenshotPath = path.join(process.cwd(), "uploads", "payment-screenshots", firstOrder.paymentScreenshot);
     
+    // Check if screenshot file exists
+    if (!fs.existsSync(screenshotPath)) {
+      console.error("Screenshot file not found:", screenshotPath);
+      return false;
+    }
+
+    // Read the screenshot file
+    const fileBuffer = await fs.promises.readFile(screenshotPath);
+    const fileName = firstOrder.paymentScreenshot;
+    
+    // Create FormData and append the photo
+    const formData = new FormData();
+    formData.append('chat_id', TELEGRAM_CHAT_ID);
+    formData.append('photo', new File([fileBuffer], fileName, { type: 'image/jpeg' }));
+    formData.append('caption', message);
+    formData.append('parse_mode', 'HTML');
+
     const response = await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: message,
-          parse_mode: "HTML",
-        }),
+        body: formData as any,
       }
     );
 
@@ -81,7 +107,7 @@ export async function sendBatchOrderNotification(orders: Order[]): Promise<boole
       return false;
     }
 
-    console.log("Batch order notification sent to Telegram successfully");
+    console.log("Batch order notification with screenshot sent to Telegram successfully");
     return true;
   } catch (error) {
     console.error("Error sending Telegram notification:", error);
@@ -114,7 +140,6 @@ PIN Code: ${escapeHtml(order.pinCode)}
 • Full Price: ₹${order.fullPrice.toLocaleString('en-IN')}
 • Paid Amount: ₹${order.paidAmount.toLocaleString('en-IN')}${balanceInfo}
 • Payment Type: ${order.paymentType === 'full' ? 'Full Payment' : 'Advance Payment'}
-• Screenshot: ${escapeHtml(order.paymentScreenshot)}
 
 <b>Order Date:</b> ${new Date(order.createdAt).toLocaleString('en-IN', {
     timeZone: 'Asia/Kolkata',
@@ -125,7 +150,7 @@ PIN Code: ${escapeHtml(order.pinCode)}
 <b>Order ID:</b> ${escapeHtml(order.id)}
 
 ---
-Please verify the payment screenshot and process the order.
+Please verify the payment screenshot above and process the order.
 `.trim();
 }
 
@@ -164,7 +189,6 @@ PIN Code: ${escapeHtml(firstOrder.pinCode)}
 <b>Payment Details:</b>
 • Total Paid: ₹${totalAmount.toLocaleString('en-IN')}${balanceInfo}
 • Payment Type: ${firstOrder.paymentType === 'full' ? 'Full Payment' : 'Advance Payment'}
-• Screenshot: ${escapeHtml(firstOrder.paymentScreenshot)}
 
 <b>Order Date:</b> ${new Date(firstOrder.createdAt).toLocaleString('en-IN', {
     timeZone: 'Asia/Kolkata',
@@ -176,6 +200,6 @@ PIN Code: ${escapeHtml(firstOrder.pinCode)}
 ${orders.map(o => escapeHtml(o.id)).join(', ')}
 
 ---
-Please verify the payment screenshot and process the orders.
+Please verify the payment screenshot above and process the orders.
 `.trim();
 }
