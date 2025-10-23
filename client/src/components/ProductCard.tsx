@@ -1,26 +1,57 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Product } from "@shared/schema";
-import { Star, Shield } from "lucide-react";
+import { Star, Shield, ShoppingCart } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const [, setLocation] = useLocation();
-  const [selectedStorage] = useState(product.storageOptions[0]);
+  const [selectedStorage, setSelectedStorage] = useState(product.storageOptions[0].capacity);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const handleCardClick = () => {
-    setLocation(`/checkout?product=${product.id}&storage=${selectedStorage.capacity}`);
+  const addToCartMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", "/api/cart", {
+        productId: product.id,
+        storage: selectedStorage,
+        quantity: 1,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      toast({
+        title: "Added to Cart",
+        description: `${product.displayName} (${selectedStorage}) has been added to your cart.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToCartMutation.mutate();
   };
+
+  const storageOption = product.storageOptions.find(s => s.capacity === selectedStorage) || product.storageOptions[0];
 
   return (
     <Card 
-      className="overflow-hidden cursor-pointer hover-elevate active-elevate-2 transition-all" 
-      onClick={handleCardClick}
+      className="overflow-hidden hover-elevate active-elevate-2 transition-all" 
       data-testid={`card-product-${product.id}`}
     >
       <CardContent className="p-0">
@@ -38,12 +69,12 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
           
-          {selectedStorage.discount && (
+          {storageOption.discount && (
             <Badge 
               className="absolute top-2 left-2 bg-background text-foreground font-semibold"
               data-testid={`badge-discount-${product.id}`}
             >
-              -{selectedStorage.discount}% OFF
+              -{storageOption.discount}% OFF
             </Badge>
           )}
           
@@ -58,18 +89,41 @@ export function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        <div className="p-3 space-y-2">
+        <div className="p-3 space-y-3">
           <h3 className="text-sm font-semibold leading-tight line-clamp-2" data-testid={`text-name-${product.id}`}>
             {product.displayName}
           </h3>
           
+          {product.storageOptions.length > 1 && (
+            <Select value={selectedStorage} onValueChange={setSelectedStorage}>
+              <SelectTrigger 
+                className="w-full h-8"
+                data-testid={`select-storage-${product.id}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {product.storageOptions.map((option) => (
+                  <SelectItem 
+                    key={option.capacity} 
+                    value={option.capacity}
+                    data-testid={`option-storage-${product.id}-${option.capacity}`}
+                  >
+                    {option.capacity}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold text-[#22C55E]" data-testid={`text-price-${product.id}`}>
-              ₹{selectedStorage.price.toLocaleString("en-IN")}
+              ₹{storageOption.price.toLocaleString("en-IN")}
             </span>
-            {selectedStorage.originalPrice && (
+            {storageOption.originalPrice && (
               <span className="text-xs text-muted-foreground line-through" data-testid={`text-original-price-${product.id}`}>
-                ₹{selectedStorage.originalPrice.toLocaleString("en-IN")}
+                ₹{storageOption.originalPrice.toLocaleString("en-IN")}
               </span>
             )}
           </div>
@@ -78,6 +132,17 @@ export function ProductCard({ product }: ProductCardProps) {
             <Shield className="h-3.5 w-3.5 text-[#FF9500]" />
             <span className="font-medium">FREE 1 Year Warranty</span>
           </div>
+
+          <Button 
+            className="w-full rounded-full"
+            size="sm"
+            onClick={handleAddToCart}
+            disabled={addToCartMutation.isPending}
+            data-testid={`button-add-to-cart-${product.id}`}
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
+          </Button>
         </div>
       </CardContent>
     </Card>
