@@ -6,6 +6,7 @@ import path from "path";
 import multer from "multer";
 import { insertOrderSchema, insertCartItemSchema, type StoreConfig, type Product } from "@shared/schema";
 import { z } from "zod";
+import { sendOrderNotification, sendBatchOrderNotification } from "./telegram";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads", "payment-screenshots");
@@ -188,6 +189,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const orders = await storage.createOrders(ordersData);
+      
+      // Send Telegram notification (async, don't block response)
+      sendBatchOrderNotification(orders).catch(err => 
+        console.error("Failed to send Telegram notification:", err)
+      );
+      
       res.status(201).json(orders);
     } catch (error) {
       console.error("Error creating batch orders:", error);
@@ -254,6 +261,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         remainingBalance,
         paymentScreenshot: req.file.filename,
       });
+
+      // Send Telegram notification (async, don't block response)
+      sendOrderNotification(order).catch(err => 
+        console.error("Failed to send Telegram notification:", err)
+      );
 
       res.status(201).json(order);
     } catch (error) {
