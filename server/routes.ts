@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { promises as fs } from "fs";
 import path from "path";
 import multer from "multer";
-import { insertOrderSchema, type StoreConfig, type Product } from "@shared/schema";
+import { insertOrderSchema, insertCartItemSchema, type StoreConfig, type Product } from "@shared/schema";
 import { z } from "zod";
 
 // Configure multer for file uploads
@@ -55,6 +55,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error loading products:", error);
       res.status(500).json({ error: "Failed to load products" });
+    }
+  });
+
+  // Cart endpoints
+  app.get("/api/cart", async (req, res) => {
+    try {
+      const cartItems = await storage.getCartItems();
+      res.json(cartItems);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      res.status(500).json({ error: "Failed to fetch cart" });
+    }
+  });
+
+  app.post("/api/cart", async (req, res) => {
+    try {
+      const itemData = insertCartItemSchema.parse(req.body);
+      const cartItem = await storage.addCartItem(itemData);
+      res.status(201).json(cartItem);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid cart item data", details: error.errors });
+      }
+      console.error("Error adding to cart:", error);
+      res.status(500).json({ error: "Failed to add item to cart" });
+    }
+  });
+
+  app.patch("/api/cart/:id", async (req, res) => {
+    try {
+      const { quantity } = req.body;
+      if (typeof quantity !== "number" || quantity < 1) {
+        return res.status(400).json({ error: "Invalid quantity" });
+      }
+      const updatedItem = await storage.updateCartItem(req.params.id, quantity);
+      if (!updatedItem) {
+        return res.status(404).json({ error: "Cart item not found" });
+      }
+      res.json(updatedItem);
+    } catch (error) {
+      console.error("Error updating cart item:", error);
+      res.status(500).json({ error: "Failed to update cart item" });
+    }
+  });
+
+  app.delete("/api/cart/:id", async (req, res) => {
+    try {
+      const deleted = await storage.removeCartItem(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Cart item not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing cart item:", error);
+      res.status(500).json({ error: "Failed to remove cart item" });
+    }
+  });
+
+  app.delete("/api/cart", async (req, res) => {
+    try {
+      await storage.clearCart();
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      res.status(500).json({ error: "Failed to clear cart" });
     }
   });
 
