@@ -123,3 +123,43 @@ export type MobileAPIPhonesResponse = {
   status: boolean;
   data: MobileAPIPhone[];
 };
+
+// Admin Settings Schema
+export const adminSettingsSchema = z.object({
+  id: z.string().default("default"),
+  upiQrImage: z.string().optional(), // Path to uploaded QR code image
+  telegramBotToken: z.string().optional(),
+  telegramChatId: z.string().optional(),
+  updatedAt: z.string(),
+});
+
+export type AdminSettings = z.infer<typeof adminSettingsSchema>;
+
+// Insert Admin Settings Schema
+export const insertAdminSettingsSchema = z.object({
+  upiQrImage: z.string().optional(),
+  telegramBotToken: z.string().optional(),
+  telegramChatId: z.string().optional(),
+});
+
+export type InsertAdminSettings = z.infer<typeof insertAdminSettingsSchema>;
+
+// Product Price Override Schema (for admin to override product prices)
+export const productPriceOverrideSchema = z.object({
+  productId: z.string(),
+  storage: z.string(),
+  price: z.number(),
+  originalPrice: z.number().optional(),
+  discount: z.number().optional(),
+});
+
+export type ProductPriceOverride = z.infer<typeof productPriceOverrideSchema>;
+
+// Insert Product Price Override Schema
+export const insertProductPriceOverrideSchema = z.object({
+  productId: z.string(),
+  storage: z.string(),
+  price: z.number().min(0, "Price must be positive"),
+  originalPrice: z.number().optional(),
+  discount: z.number().optional(),
+});
