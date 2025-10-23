@@ -1,0 +1,155 @@
+{
+  "products": [
+    {
+      "id": "iphone-17-pro-max",
+      "deviceName": "iPhone 17 Pro Max",
+      "displayName": "iPhone 17 Pro Max",
+      "model": "A3102",
+      "storageOptions": [
+        { "capacity": "256GB", "price": 144900 },
+        { "capacity": "512GB", "price": 164900 },
+        { "capacity": "1TB", "price": 184900 }
+      ],
+      "specs": [
+        "6.9-inch Super Retina XDR display",
+        "A19 Pro chip",
+        "Pro camera system with 48MP main",
+        "Up to 33 hours video playback"
+      ],
+      "releaseDate": "September 2025"
+    },
+    {
+      "id": "iphone-17-pro",
+      "deviceName": "iPhone 17 Pro",
+      "displayName": "iPhone 17 Pro",
+      "model": "A3101",
+      "storageOptions": [
+        { "capacity": "128GB", "price": 134900 },
+        { "capacity": "256GB", "price": 144900 },
+        { "capacity": "512GB", "price": 164900 },
+        { "capacity": "1TB", "price": 184900 }
+      ],
+      "specs": [
+        "6.3-inch Super Retina XDR display",
+        "A19 Pro chip",
+        "Pro camera system with 48MP main",
+        "Up to 29 hours video playback"
+      ],
+      "releaseDate": "September 2025"
+    },
+    {
+      "id": "iphone-16-pro-max",
+      "deviceName": "iPhone 16 Pro Max",
+      "displayName": "iPhone 16 Pro Max",
+      "model": "A2849",
+      "storageOptions": [
+        { "capacity": "256GB", "price": 134900 },
+        { "capacity": "512GB", "price": 154900 },
+        { "capacity": "1TB", "price": 174900 }
+      ],
+      "specs": [
+        "6.9-inch Super Retina XDR display",
+        "A18 Pro chip with 6-core GPU",
+        "Advanced 48MP camera system",
+        "Up to 33 hours video playback"
+      ],
+      "releaseDate": "September 2024"
+    },
+    {
+      "id": "iphone-16-pro",
+      "deviceName": "iPhone 16 Pro",
+      "displayName": "iPhone 16 Pro",
+      "model": "A2848",
+      "storageOptions": [
+        { "capacity": "128GB", "price": 119900 },
+        { "capacity": "256GB", "price": 134900 },
+        { "capacity": "512GB", "price": 154900 },
+        { "capacity": "1TB", "price": 174900 }
+      ],
+      "specs": [
+        "6.3-inch Super Retina XDR display",
+        "A18 Pro chip",
+        "Advanced 48MP camera system",
+        "Up to 27 hours video playback"
+      ],
+      "releaseDate": "September 2024"
+    },
+    {
+      "id": "iphone-15-pro-max",
+      "deviceName": "iPhone 15 Pro Max",
+      "displayName": "iPhone 15 Pro Max",
+      "model": "A2849",
+      "storageOptions": [
+        { "capacity": "256GB", "price": 124900 },
+        { "capacity": "512GB", "price": 144900 },
+        { "capacity": "1TB", "price": 164900 }
+      ],
+      "specs": [
+        "6.7-inch Super Retina XDR display",
+        "A17 Pro chip",
+        "Advanced 48MP camera system",
+        "Titanium design"
+      ],
+      "releaseDate": "September 2023"
+    },
+    {
+      "id": "iphone-15",
+      "deviceName": "iPhone 15",
+      "displayName": "iPhone 15",
+      "model": "A2846",
+      "storageOptions": [
+        { "capacity": "128GB", "price": 79900 },
+        { "capacity": "256GB", "price": 89900 },
+        { "capacity": "512GB", "price": 109900 }
+      ],
+      "specs": [
+        "6.1-inch Super Retina XDR display",
+        "A16 Bionic chip",
+        "Advanced dual-camera system",
+        "Dynamic Island"
+      ],
+      "releaseDate": "September 2023"
+    },
+    {
+      "id": "iphone-14-pro",
+      "deviceName": "iPhone 14 Pro",
+      "displayName": "iPhone 14 Pro",
+      "model": "A2890",
+      "storageOptions": [
+        { "capacity": "128GB", "price": 99900 },
+        { "capacity": "256GB", "price": 109900 },
+        { "capacity": "512GB", "price": 129900 }
+      ],
+      "specs": [
+        "6.1-inch Super Retina XDR display",
+        "A16 Bionic chip",
+        "Pro camera system 48MP",
+        "Dynamic Island"
+      ],
+      "releaseDate": "September 2022"
+    },
+    {
+      "id": "iphone-13",
+      "deviceName": "iPhone 13",
+      "displayName": "iPhone 13",
+      "model": "A2482",
+      "storageOptions": [
+        { "capacity": "128GB", "price": 59900 },
+        { "capacity": "256GB", "price": 69900 },
+        { "capacity": "512GB", "price": 89900 }
+      ],
+      "specs": [
+        "6.1-inch Super Retina XDR display",
+        "A15 Bionic chip",
+        "Advanced dual-camera system",
+        "Ceramic Shield front cover"
+      ],
+      "releaseDate": "September 2021"
+    }
+  ],
+  "paymentConfig": {
+    "upiId": "onlyiphones@paytm",
+    "qrCodeUrl": "https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=upi://pay?pa=onlyiphones@paytm%26pn=OnlyiPhones%26cu=INR",
+    "defaultAdvancePayment": 550
+  }
+}

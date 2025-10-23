@@ -1,0 +1,18 @@
+[
+  {
+    "customerName": "Test Customer",
+    "phone": "9876543210",
+    "address": "123 Test Street, Test Area, Mumbai, Maharashtra",
+    "pinCode": "400001",
+    "productId": "iphone-17-pro-max",
+    "storage": "256GB",
+    "paymentType": "advance",
+    "productName": "iPhone 17 Pro Max",
+    "fullPrice": 144900,
+    "paidAmount": 550,
+    "remainingBalance": 144350,
+    "paymentScreenshot": "payment-1761247045046-739687741.png",
+    "id": "60eb3551-37dc-4943-8d60-29fed65a62a8",
+    "createdAt": "2025-10-23T19:17:25.049Z"
+  }
+]

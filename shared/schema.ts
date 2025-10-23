@@ -1,18 +1,77 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { createInsertSchema } from "drizzle-zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// Product Configuration Schema
+export const productSchema = z.object({
+  id: z.string(),
+  deviceName: z.string(), // For MobileAPI.dev lookup (e.g., "iPhone 15 Pro")
+  displayName: z.string(),
+  model: z.string(),
+  storageOptions: z.array(z.object({
+    capacity: z.string(), // e.g., "128GB", "256GB"
+    price: z.number(), // in INR
+  })),
+  specs: z.array(z.string()),
+  releaseDate: z.string().optional(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export type Product = z.infer<typeof productSchema>;
+
+// Payment Configuration Schema
+export const paymentConfigSchema = z.object({
+  upiId: z.string(),
+  qrCodeUrl: z.string(),
+  defaultAdvancePayment: z.number(), // Default ₹550
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type PaymentConfig = z.infer<typeof paymentConfigSchema>;
+
+// Store Configuration Schema (combines products and payment info)
+export const storeConfigSchema = z.object({
+  products: z.array(productSchema),
+  paymentConfig: paymentConfigSchema,
+});
+
+export type StoreConfig = z.infer<typeof storeConfigSchema>;
+
+// Order Schema
+export const orderSchema = z.object({
+  id: z.string(),
+  customerName: z.string(),
+  phone: z.string(),
+  address: z.string(),
+  pinCode: z.string(),
+  productId: z.string(),
+  productName: z.string(),
+  storage: z.string(),
+  fullPrice: z.number(),
+  paidAmount: z.number(),
+  remainingBalance: z.number(),
+  paymentType: z.enum(["full", "advance"]),
+  paymentScreenshot: z.string(), // filename
+  createdAt: z.string(),
+});
+
+export type Order = z.infer<typeof orderSchema>;
+
+// Insert Schemas for forms
+export const insertOrderSchema = z.object({
+  customerName: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z.string().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number"),
+  address: z.string().min(10, "Please provide a complete delivery address"),
+  pinCode: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit PIN code"),
+  productId: z.string(),
+  storage: z.string(),
+  paymentType: z.enum(["full", "advance"]),
+});
+
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+
+// MobileAPI.dev response type
+export type MobileDeviceImage = {
+  status: boolean;
+  data: {
+    image: string;
+    name: string;
+  };
+};
