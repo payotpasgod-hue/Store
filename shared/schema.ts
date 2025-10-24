@@ -130,6 +130,7 @@ export const adminSettingsSchema = z.object({
   upiId: z.string().optional(), // UPI ID for payment (auto-generates QR code)
   telegramBotToken: z.string().optional(),
   telegramChatId: z.string().optional(),
+  whatsappNumber: z.string().optional(), // WhatsApp contact number
   updatedAt: z.string(),
 });
 
@@ -140,6 +141,23 @@ export const insertAdminSettingsSchema = z.object({
   upiId: z.string().optional(),
   telegramBotToken: z.string().optional(),
   telegramChatId: z.string().optional(),
+  whatsappNumber: z.string().optional(),
+});
+
+// Insert Product Schema (for creating new products)
+export const insertProductSchema = z.object({
+  displayName: z.string().min(1, "Product name is required"),
+  deviceName: z.string().min(1, "Device name is required"),
+  model: z.string().min(1, "Model is required"),
+  colorOptions: z.array(z.string()).default([]),
+  storageOptions: z.array(z.object({
+    capacity: z.string(),
+    originalPrice: z.number().min(0, "Original price must be positive"),
+    discount: z.number().min(0).max(100, "Discount must be between 0-100").default(0),
+  })).min(1, "At least one storage option is required"),
+  rating: z.number().min(0).max(5).optional(),
+  specs: z.array(z.string()).default([]),
+  releaseDate: z.string().optional(),
 });
 
 export type InsertAdminSettings = z.infer<typeof insertAdminSettingsSchema>;

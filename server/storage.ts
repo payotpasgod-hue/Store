@@ -1,4 +1,4 @@
-import { type Order, type CartItem, type AdminSettings, type ProductPriceOverride } from "@shared/schema";
+import { type Order, type CartItem, type AdminSettings, type ProductPriceOverride, type Product } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
@@ -23,6 +23,10 @@ export interface IStorage {
   deleteProductPrice(productId: string, storage: string): Promise<boolean>;
   updateConfigPrice(productId: string, storage: string, price: number, originalPrice?: number, discount?: number): Promise<void>;
   updateConfigUpiId(upiId: string): Promise<void>;
+  
+  addProduct(product: Omit<Product, "id">, imagePath?: string): Promise<Product>;
+  updateProduct(productId: string, updates: Partial<Omit<Product, "id">>, imagePath?: string): Promise<Product>;
+  deleteProduct(productId: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -297,6 +301,80 @@ export class MemStorage implements IStorage {
     config.paymentConfig.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=${encodedUpiId}%26pn=OnlyiPhones%26cu=INR`;
 
     await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+  }
+
+  async addProduct(productData: Omit<Product, "id">, imagePath?: string): Promise<Product> {
+    const configPath = path.join(process.cwd(), "config", "store-config.json");
+    const configData = await fs.readFile(configPath, "utf-8");
+    const config = JSON.parse(configData);
+
+    const id = randomUUID();
+    
+    const storageOptionsWithCalculatedPrices = productData.storageOptions.map(option => ({
+      ...option,
+      price: Math.round(option.originalPrice! * (1 - (option.discount || 0) / 100)),
+    }));
+
+    const product: Product = {
+      id,
+      ...productData,
+      storageOptions: storageOptionsWithCalculatedPrices,
+      imagePath: imagePath || undefined,
+    };
+
+    config.products.push(product);
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+    
+    return product;
+  }
+
+  async updateProduct(productId: string, updates: Partial<Omit<Product, "id">>, imagePath?: string): Promise<Product> {
+    const configPath = path.join(process.cwd(), "config", "store-config.json");
+    const configData = await fs.readFile(configPath, "utf-8");
+    const config = JSON.parse(configData);
+
+    const productIndex = config.products.findIndex((p: any) => p.id === productId);
+    if (productIndex === -1) {
+      throw new Error("Product not found");
+    }
+
+    const currentProduct = config.products[productIndex];
+    
+    const storageOptionsWithCalculatedPrices = updates.storageOptions 
+      ? updates.storageOptions.map(option => ({
+          ...option,
+          price: Math.round(option.originalPrice! * (1 - (option.discount || 0) / 100)),
+        }))
+      : currentProduct.storageOptions;
+
+    const updatedProduct: Product = {
+      ...currentProduct,
+      ...updates,
+      id: productId,
+      storageOptions: storageOptionsWithCalculatedPrices,
+      imagePath: imagePath !== undefined ? imagePath : currentProduct.imagePath,
+    };
+
+    config.products[productIndex] = updatedProduct;
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+    
+    return updatedProduct;
+  }
+
+  async deleteProduct(productId: string): Promise<boolean> {
+    const configPath = path.join(process.cwd(), "config", "store-config.json");
+    const configData = await fs.readFile(configPath, "utf-8");
+    const config = JSON.parse(configData);
+
+    const initialLength = config.products.length;
+    config.products = config.products.filter((p: any) => p.id !== productId);
+
+    if (config.products.length === initialLength) {
+      return false;
+    }
+
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+    return true;
   }
 }
 
