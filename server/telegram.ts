@@ -2,9 +2,7 @@ import type { Order } from "@shared/schema";
 import fs from "fs";
 import path from "path";
 import { FormData, File } from "formdata-node";
-
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+import { storage } from "./storage";
 
 // Escape HTML special characters for Telegram
 function escapeHtml(text: string): string {
@@ -17,12 +15,17 @@ function escapeHtml(text: string): string {
 }
 
 export async function sendOrderNotification(order: Order): Promise<boolean> {
-  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-    console.error("Telegram credentials not configured");
-    return false;
-  }
-
   try {
+    // Fetch Telegram settings from storage
+    const settings = await storage.getAdminSettings();
+    const TELEGRAM_BOT_TOKEN = settings.telegramBotToken;
+    const TELEGRAM_CHAT_ID = settings.telegramChatId;
+    
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+      console.error("Telegram credentials not configured in admin settings");
+      return false;
+    }
+
     const message = formatOrderMessage(order);
     const screenshotPath = path.join(process.cwd(), "uploads", "payment-screenshots", order.paymentScreenshot);
     
@@ -66,12 +69,17 @@ export async function sendOrderNotification(order: Order): Promise<boolean> {
 }
 
 export async function sendBatchOrderNotification(orders: Order[]): Promise<boolean> {
-  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-    console.error("Telegram credentials not configured");
-    return false;
-  }
-
   try {
+    // Fetch Telegram settings from storage
+    const settings = await storage.getAdminSettings();
+    const TELEGRAM_BOT_TOKEN = settings.telegramBotToken;
+    const TELEGRAM_CHAT_ID = settings.telegramChatId;
+    
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+      console.error("Telegram credentials not configured in admin settings");
+      return false;
+    }
+
     const message = formatBatchOrderMessage(orders);
     const firstOrder = orders[0];
     const screenshotPath = path.join(process.cwd(), "uploads", "payment-screenshots", firstOrder.paymentScreenshot);
