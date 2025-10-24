@@ -265,6 +265,7 @@ function QRCodeSettings({ settings }: { settings?: AdminSettings }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/config"] });
       setSelectedFile(null);
       setPreviewUrl(null);
       toast({

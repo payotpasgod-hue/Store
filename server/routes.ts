@@ -58,12 +58,21 @@ const qrUpload = multer({
 const ADMIN_PIN = "1161";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get store configuration (products + payment config)
+  // Get store configuration (products + payment config) with admin overrides
   app.get("/api/config", async (req, res) => {
     try {
       const configPath = path.join(process.cwd(), "config", "store-config.json");
       const configData = await fs.readFile(configPath, "utf-8");
       const config: StoreConfig = JSON.parse(configData);
+      
+      // Get admin settings to override QR code if uploaded
+      const adminSettings = await storage.getAdminSettings();
+      
+      // If admin has uploaded a custom QR code, use it instead of the static one
+      if (adminSettings && adminSettings.upiQrImage) {
+        config.paymentConfig.qrCodeUrl = adminSettings.upiQrImage;
+      }
+      
       res.json(config);
     } catch (error) {
       console.error("Error loading config:", error);
