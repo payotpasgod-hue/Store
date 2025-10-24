@@ -62,5 +62,53 @@
     "paymentScreenshot": "payment-1761260385001-781131399.webp",
     "id": "7d937ae8-7f5e-4549-b510-8258fff4d6b3",
     "createdAt": "2025-10-23T22:59:45.122Z"
+  },
+  {
+    "customerName": "Blain Bowman",
+    "phone": "9296998324",
+    "address": "7645 Milldale Cir",
+    "pinCode": "956266",
+    "productId": "iphone-15-pro-max",
+    "productName": "Buy Apple iPhone 15 Pro Max",
+    "storage": "1024GB",
+    "fullPrice": 244800,
+    "paidAmount": 550,
+    "remainingBalance": 244250,
+    "paymentType": "advance",
+    "paymentScreenshot": "payment-1761286574863-77132348.png",
+    "id": "d13064d6-a7f8-4024-8524-83ca2475b1e7",
+    "createdAt": "2025-10-24T06:16:15.063Z"
+  },
+  {
+    "customerName": "Blain Bowman",
+    "phone": "9296998324",
+    "address": "7645 Milldale Cir",
+    "pinCode": "956266",
+    "productId": "iphone-11",
+    "productName": "Buy Apple iPhone 11",
+    "storage": "256GB",
+    "fullPrice": 5000,
+    "paidAmount": 5000,
+    "remainingBalance": 0,
+    "paymentType": "full",
+    "paymentScreenshot": "payment-1761286678647-788253639.jpg",
+    "id": "cdbe2048-e405-473f-92cb-23b12b52b414",
+    "createdAt": "2025-10-24T06:17:58.942Z"
+  },
+  {
+    "customerName": "Blain Bowman",
+    "phone": "9296998324",
+    "address": "7645 Milldale Cir",
+    "pinCode": "956266",
+    "productId": "iphone-14-pro-max",
+    "productName": "Buy Apple iPhone 14 Pro Max",
+    "storage": "1024GB",
+    "fullPrice": 244800,
+    "paidAmount": 550,
+    "remainingBalance": 244250,
+    "paymentType": "advance",
+    "paymentScreenshot": "payment-1761291687699-984829208.png",
+    "id": "f94fe632-5e43-41b8-972c-9eff51a113ec",
+    "createdAt": "2025-10-24T07:41:28.060Z"
   }
 ]
