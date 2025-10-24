@@ -58,20 +58,12 @@ const qrUpload = multer({
 const ADMIN_PIN = "1161";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get store configuration (products + payment config) with admin overrides
+  // Get store configuration (products + payment config)
   app.get("/api/config", async (req, res) => {
     try {
       const configPath = path.join(process.cwd(), "config", "store-config.json");
       const configData = await fs.readFile(configPath, "utf-8");
       const config: StoreConfig = JSON.parse(configData);
-      
-      // Get admin settings to override QR code if uploaded
-      const adminSettings = await storage.getAdminSettings();
-      
-      // If admin has uploaded a custom QR code, use it instead of the static one
-      if (adminSettings && adminSettings.upiQrImage) {
-        config.paymentConfig.qrCodeUrl = adminSettings.upiQrImage;
-      }
       
       res.json(config);
     } catch (error) {
@@ -80,44 +72,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get products list with price overrides applied
+  // Get products list from config file
   app.get("/api/products", async (req, res) => {
     try {
       const configPath = path.join(process.cwd(), "config", "store-config.json");
       const configData = await fs.readFile(configPath, "utf-8");
       const config: StoreConfig = JSON.parse(configData);
       
-      // Get price overrides from storage
-      const priceOverrides = await storage.getProductPrices();
-      
-      // Apply price overrides to products
-      const productsWithOverrides = config.products.map(product => {
-        const updatedStorageOptions = product.storageOptions.map(storageOption => {
-          // Find matching price override
-          const override = priceOverrides.find(
-            po => po.productId === product.id && po.storage === storageOption.capacity
-          );
-          
-          if (override) {
-            // Apply the override
-            return {
-              ...storageOption,
-              price: override.price,
-              originalPrice: override.originalPrice,
-              discount: override.discount,
-            };
-          }
-          
-          return storageOption;
-        });
-        
-        return {
-          ...product,
-          storageOptions: updatedStorageOptions,
-        };
-      });
-      
-      res.json(productsWithOverrides);
+      res.json(config.products);
     } catch (error) {
       console.error("Error loading products:", error);
       res.status(500).json({ error: "Failed to load products" });
@@ -397,6 +359,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/settings", async (req, res) => {
     try {
       const settingsData = insertAdminSettingsSchema.parse(req.body);
+      
+      // If UPI ID is being updated, update the config file
+      if (settingsData.upiId) {
+        await storage.updateConfigUpiId(settingsData.upiId);
+      }
+      
       const settings = await storage.updateAdminSettings(settingsData);
       res.json(settings);
     } catch (error) {
@@ -408,59 +376,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload QR code
-  app.post("/api/admin/qr-upload", qrUpload.single("qrImage"), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-      }
-      const qrImagePath = `/uploads/qr-codes/${req.file.filename}`;
-      const settings = await storage.updateAdminSettings({ upiQrImage: qrImagePath });
-      res.json({ success: true, path: qrImagePath, settings });
-    } catch (error) {
-      console.error("Error uploading QR code:", error);
-      res.status(500).json({ error: "Failed to upload QR code" });
-    }
-  });
 
-  // Get product price overrides
-  app.get("/api/admin/product-prices", async (req, res) => {
-    try {
-      const prices = await storage.getProductPrices();
-      res.json(prices);
-    } catch (error) {
-      console.error("Error fetching product prices:", error);
-      res.status(500).json({ error: "Failed to fetch product prices" });
-    }
-  });
-
-  // Update product price
+  // Update product price - updates config file directly
   app.post("/api/admin/product-prices", async (req, res) => {
     try {
       const priceData = insertProductPriceOverrideSchema.parse(req.body);
-      const price = await storage.updateProductPrice(priceData);
-      res.json(price);
+      
+      // Update the config file directly
+      await storage.updateConfigPrice(
+        priceData.productId,
+        priceData.storage,
+        priceData.price,
+        priceData.originalPrice,
+        priceData.discount
+      );
+      
+      res.json({ success: true, ...priceData });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Invalid price data", details: error.errors });
       }
       console.error("Error updating product price:", error);
       res.status(500).json({ error: "Failed to update product price" });
-    }
-  });
-
-  // Delete product price override
-  app.delete("/api/admin/product-prices/:productId/:storage", async (req, res) => {
-    try {
-      const { productId, storage: storageCapacity } = req.params;
-      const deleted = await storage.deleteProductPrice(productId, storageCapacity);
-      if (!deleted) {
-        return res.status(404).json({ error: "Price override not found" });
-      }
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting product price:", error);
-      res.status(500).json({ error: "Failed to delete product price" });
     }
   });
 

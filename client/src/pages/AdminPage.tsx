@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Lock, Settings, DollarSign, QrCode, Trash2 } from "lucide-react";
+import { Lock, Settings, DollarSign, QrCode } from "lucide-react";
 import type { AdminSettings, ProductPriceOverride, Product } from "@shared/schema";
 
 export default function AdminPage() {
@@ -105,10 +105,6 @@ function AdminDashboard() {
     queryKey: ["/api/products"],
   });
 
-  const { data: priceOverrides = [] } = useQuery<ProductPriceOverride[]>({
-    queryKey: ["/api/admin/product-prices"],
-  });
-
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b">
@@ -132,7 +128,7 @@ function AdminDashboard() {
               Telegram Settings
             </TabsTrigger>
             <TabsTrigger value="qr" data-testid="tab-qr">
-              UPI QR Code
+              UPI Payment
             </TabsTrigger>
             <TabsTrigger value="prices" data-testid="tab-prices">
               Product Prices
@@ -148,7 +144,7 @@ function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="prices">
-            <ProductPriceSettings products={products} priceOverrides={priceOverrides} />
+            <ProductPriceSettings products={products} />
           </TabsContent>
         </Tabs>
       </div>
@@ -249,55 +245,41 @@ function TelegramSettings({ settings }: { settings?: AdminSettings }) {
 
 function QRCodeSettings({ settings }: { settings?: AdminSettings }) {
   const { toast } = useToast();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [upiId, setUpiId] = useState(settings?.upiId || "");
 
-  const uploadQR = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append("qrImage", file);
-      const response = await fetch("/api/admin/qr-upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (!response.ok) throw new Error("Upload failed");
-      return response.json();
+  // Sync state when settings data loads
+  useEffect(() => {
+    if (settings) {
+      setUpiId(settings.upiId || "");
+    }
+  }, [settings]);
+
+  const updateSettings = useMutation({
+    mutationFn: async (data: { upiId?: string }) => {
+      const response = await apiRequest("POST", "/api/admin/settings", data);
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/config"] });
-      setSelectedFile(null);
-      setPreviewUrl(null);
       toast({
-        title: "QR Code uploaded",
-        description: "UPI QR code has been updated successfully",
+        title: "UPI ID updated",
+        description: "UPI ID and QR code have been updated successfully",
       });
     },
     onError: () => {
       toast({
-        title: "Upload failed",
-        description: "Failed to upload QR code",
+        title: "Update failed",
+        description: "Failed to update UPI ID",
         variant: "destructive",
       });
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleUpload = () => {
-    if (selectedFile) {
-      uploadQR.mutate(selectedFile);
-    }
+  const handleSave = () => {
+    updateSettings.mutate({
+      upiId: upiId || undefined,
+    });
   };
 
   return (
@@ -305,54 +287,33 @@ function QRCodeSettings({ settings }: { settings?: AdminSettings }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <QrCode className="w-5 h-5" />
-          UPI QR Code
+          UPI Payment Settings
         </CardTitle>
         <CardDescription>
-          Upload your UPI QR code for payment collection
+          Enter your UPI ID to auto-generate payment QR code
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {settings?.upiQrImage && !previewUrl && (
-          <div className="space-y-2">
-            <Label>Current QR Code</Label>
-            <img
-              src={settings.upiQrImage}
-              alt="Current UPI QR"
-              className="w-64 h-64 object-contain border rounded-md"
-              data-testid="img-current-qr"
-            />
-          </div>
-        )}
-
         <div className="space-y-2">
-          <Label htmlFor="qr-upload">Upload New QR Code</Label>
+          <Label htmlFor="upi-id">UPI ID</Label>
           <Input
-            id="qr-upload"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            data-testid="input-qr-upload"
+            id="upi-id"
+            value={upiId}
+            onChange={(e) => setUpiId(e.target.value)}
+            placeholder="yourname@paytm"
+            data-testid="input-upi-id"
           />
+          <p className="text-xs text-muted-foreground">
+            Enter your UPI ID (e.g., yourname@paytm). QR code will be auto-generated.
+          </p>
         </div>
 
-        {previewUrl && (
-          <div className="space-y-2">
-            <Label>Preview</Label>
-            <img
-              src={previewUrl}
-              alt="QR Preview"
-              className="w-64 h-64 object-contain border rounded-md"
-              data-testid="img-qr-preview"
-            />
-          </div>
-        )}
-
         <Button
-          onClick={handleUpload}
-          disabled={!selectedFile || uploadQR.isPending}
-          data-testid="button-upload-qr"
+          onClick={handleSave}
+          disabled={updateSettings.isPending}
+          data-testid="button-save-upi"
         >
-          {uploadQR.isPending ? "Uploading..." : "Upload QR Code"}
+          {updateSettings.isPending ? "Saving..." : "Save UPI ID"}
         </Button>
       </CardContent>
     </Card>
@@ -361,10 +322,8 @@ function QRCodeSettings({ settings }: { settings?: AdminSettings }) {
 
 function ProductPriceSettings({
   products,
-  priceOverrides,
 }: {
   products: Product[];
-  priceOverrides: ProductPriceOverride[];
 }) {
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState("");
@@ -379,7 +338,8 @@ function ProductPriceSettings({
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/product-prices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/config"] });
       setSelectedProduct("");
       setSelectedStorage("");
       setNewPrice("");
@@ -399,25 +359,6 @@ function ProductPriceSettings({
     },
   });
 
-  const deletePrice = useMutation({
-    mutationFn: async ({ productId, storage }: { productId: string; storage: string }) => {
-      await apiRequest("DELETE", `/api/admin/product-prices/${productId}/${storage}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/product-prices"] });
-      toast({
-        title: "Price reset",
-        description: "Product price override has been removed",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to delete price override",
-        variant: "destructive",
-      });
-    },
-  });
 
   const handleUpdatePrice = () => {
     if (!selectedProduct || !selectedStorage || !newPrice) {
@@ -450,7 +391,7 @@ function ProductPriceSettings({
             Update Product Prices
           </CardTitle>
           <CardDescription>
-            Override product prices with custom pricing
+            Update product prices directly in the store configuration
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -544,67 +485,6 @@ function ProductPriceSettings({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Price Overrides</CardTitle>
-          <CardDescription>
-            Active custom pricing for products
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {priceOverrides.length === 0 ? (
-            <p className="text-sm text-muted-foreground" data-testid="text-no-overrides">
-              No price overrides set
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {priceOverrides.map((override) => {
-                const product = products.find((p) => p.id === override.productId);
-                return (
-                  <div
-                    key={`${override.productId}-${override.storage}`}
-                    className="flex items-center justify-between p-3 border rounded-md hover-elevate"
-                    data-testid={`override-${override.productId}-${override.storage}`}
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {product?.displayName || override.productId} - {override.storage}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        ₹{override.price.toLocaleString("en-IN")}
-                        {override.originalPrice && (
-                          <span className="ml-2 line-through">
-                            ₹{override.originalPrice.toLocaleString("en-IN")}
-                          </span>
-                        )}
-                        {override.discount && (
-                          <span className="ml-2 text-green-600">
-                            {override.discount}% off
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() =>
-                        deletePrice.mutate({
-                          productId: override.productId,
-                          storage: override.storage,
-                        })
-                      }
-                      disabled={deletePrice.isPending}
-                      data-testid={`button-delete-${override.productId}-${override.storage}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

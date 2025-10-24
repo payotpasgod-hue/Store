@@ -21,6 +21,8 @@ export interface IStorage {
   getProductPrices(): Promise<ProductPriceOverride[]>;
   updateProductPrice(override: ProductPriceOverride): Promise<ProductPriceOverride>;
   deleteProductPrice(productId: string, storage: string): Promise<boolean>;
+  updateConfigPrice(productId: string, storage: string, price: number, originalPrice?: number, discount?: number): Promise<void>;
+  updateConfigUpiId(upiId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -257,6 +259,44 @@ export class MemStorage implements IStorage {
       await this.saveProductPrices();
     }
     return deleted;
+  }
+
+  async updateConfigPrice(productId: string, storage: string, price: number, originalPrice?: number, discount?: number): Promise<void> {
+    const configPath = path.join(process.cwd(), "config", "store-config.json");
+    const configData = await fs.readFile(configPath, "utf-8");
+    const config = JSON.parse(configData);
+
+    const product = config.products.find((p: any) => p.id === productId);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    const storageOption = product.storageOptions.find((s: any) => s.capacity === storage);
+    if (!storageOption) {
+      throw new Error("Storage option not found");
+    }
+
+    storageOption.price = price;
+    if (originalPrice !== undefined) {
+      storageOption.originalPrice = originalPrice;
+    }
+    if (discount !== undefined) {
+      storageOption.discount = discount;
+    }
+
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+  }
+
+  async updateConfigUpiId(upiId: string): Promise<void> {
+    const configPath = path.join(process.cwd(), "config", "store-config.json");
+    const configData = await fs.readFile(configPath, "utf-8");
+    const config = JSON.parse(configData);
+
+    config.paymentConfig.upiId = upiId;
+    const encodedUpiId = encodeURIComponent(upiId);
+    config.paymentConfig.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=${encodedUpiId}%26pn=OnlyiPhones%26cu=INR`;
+
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
   }
 }
 

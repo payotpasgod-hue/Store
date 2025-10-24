@@ -127,7 +127,7 @@ export type MobileAPIPhonesResponse = {
 // Admin Settings Schema
 export const adminSettingsSchema = z.object({
   id: z.string().default("default"),
-  upiQrImage: z.string().optional(), // Path to uploaded QR code image
+  upiId: z.string().optional(), // UPI ID for payment (auto-generates QR code)
   telegramBotToken: z.string().optional(),
   telegramChatId: z.string().optional(),
   updatedAt: z.string(),
@@ -137,7 +137,7 @@ export type AdminSettings = z.infer<typeof adminSettingsSchema>;
 
 // Insert Admin Settings Schema
 export const insertAdminSettingsSchema = z.object({
-  upiQrImage: z.string().optional(),
+  upiId: z.string().optional(),
   telegramBotToken: z.string().optional(),
   telegramChatId: z.string().optional(),
 });
