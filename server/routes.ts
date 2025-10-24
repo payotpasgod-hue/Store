@@ -434,7 +434,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? `/uploads/product-images/${req.file.filename}`
         : undefined;
       
-      const product = await storage.addProduct(productData, imagePath);
+      const productWithPrice = {
+        ...productData,
+        storageOptions: productData.storageOptions.map(opt => ({
+          ...opt,
+          price: Math.round(opt.originalPrice * (1 - (opt.discount || 0) / 100))
+        }))
+      };
+      
+      const product = await storage.addProduct(productWithPrice, imagePath);
       
       res.status(201).json(product);
     } catch (error) {
@@ -456,7 +464,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? `/uploads/product-images/${req.file.filename}`
         : undefined;
       
-      const product = await storage.updateProduct(productId, updates, imagePath);
+      let updatesWithPrice: Partial<Omit<Product, "id">>;
+      if (updates.storageOptions) {
+        updatesWithPrice = {
+          ...updates,
+          storageOptions: updates.storageOptions.map(opt => ({
+            capacity: opt.capacity,
+            originalPrice: opt.originalPrice,
+            discount: opt.discount,
+            price: Math.round(opt.originalPrice * (1 - (opt.discount || 0) / 100))
+          }))
+        };
+      } else {
+        updatesWithPrice = updates as Partial<Omit<Product, "id">>;
+      }
+      
+      const product = await storage.updateProduct(productId, updatesWithPrice, imagePath);
       
       res.json(product);
     } catch (error) {
