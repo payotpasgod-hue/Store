@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { promises as fs } from "fs";
 import path from "path";
 import multer from "multer";
-import { insertOrderSchema, insertCartItemSchema, insertAdminSettingsSchema, insertProductPriceOverrideSchema, type StoreConfig, type Product } from "@shared/schema";
+import { insertOrderSchema, insertCartItemSchema, insertAdminSettingsSchema, insertProductPriceOverrideSchema, insertProductSchema, type StoreConfig, type Product } from "@shared/schema";
 import { z } from "zod";
 import { sendOrderNotification, sendBatchOrderNotification } from "./telegram";
 
@@ -45,6 +45,30 @@ const qrUpload = multer({
   }),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB max
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
+
+// Configure multer for product image uploads
+const productImageDir = path.join(process.cwd(), "uploads", "product-images");
+fs.mkdir(productImageDir, { recursive: true }).catch(console.error);
+
+const productImageUpload = multer({
+  storage: multer.diskStorage({
+    destination: productImageDir,
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -398,6 +422,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error updating product price:", error);
       res.status(500).json({ error: "Failed to update product price" });
+    }
+  });
+
+  // Add new product with optional image upload
+  app.post("/api/admin/products", productImageUpload.single('image'), async (req, res) => {
+    try {
+      const productData = insertProductSchema.parse(JSON.parse(req.body.productData));
+      
+      const imagePath = req.file 
+        ? `/uploads/product-images/${req.file.filename}`
+        : undefined;
+      
+      const product = await storage.addProduct(productData, imagePath);
+      
+      res.status(201).json(product);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid product data", details: error.errors });
+      }
+      console.error("Error adding product:", error);
+      res.status(500).json({ error: "Failed to add product" });
+    }
+  });
+
+  // Update existing product with optional image upload
+  app.put("/api/admin/products/:productId", productImageUpload.single('image'), async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const updates = insertProductSchema.partial().parse(JSON.parse(req.body.productData));
+      
+      const imagePath = req.file 
+        ? `/uploads/product-images/${req.file.filename}`
+        : undefined;
+      
+      const product = await storage.updateProduct(productId, updates, imagePath);
+      
+      res.json(product);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid product data", details: error.errors });
+      }
+      console.error("Error updating product:", error);
+      res.status(500).json({ error: "Failed to update product" });
+    }
+  });
+
+  // Delete product
+  app.delete("/api/admin/products/:productId", async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const deleted = await storage.deleteProduct(productId);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ error: "Failed to delete product" });
     }
   });
 
