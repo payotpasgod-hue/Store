@@ -1,8 +1,16 @@
 import { SiWhatsapp } from "react-icons/si";
+import { useQuery } from "@tanstack/react-query";
+import type { AdminSettings } from "@shared/schema";
 
 export function WhatsAppButton() {
+  const { data: settings } = useQuery<AdminSettings>({
+    queryKey: ["/api/admin/settings"],
+  });
+
+  const whatsappNumber = settings?.whatsappNumber || "919876543210";
+
   const handleWhatsAppClick = () => {
-    window.open("https://wa.me/919876543210", "_blank");
+    window.open(`https://wa.me/${whatsappNumber}`, "_blank");
   };
 
   return (
