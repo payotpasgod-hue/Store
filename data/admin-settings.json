@@ -1,8 +1,9 @@
 {
   "id": "default",
-  "updatedAt": "2025-10-24T06:17:00.639Z",
+  "updatedAt": "2025-10-24T14:12:38.872Z",
   "upiQrImage": "/uploads/qr-codes/upi-qr.jpg",
   "telegramBotToken": "8162001761:AAGnE8EMTSpOfy-JiKjAXuh4cnO2pyBtV10",
   "telegramChatId": "8098662104",
-  "upiId": "testpay@fam"
+  "upiId": "testpay@fam",
+  "whatsappNumber": "01311179393"
 }

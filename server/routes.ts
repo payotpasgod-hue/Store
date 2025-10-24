@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { promises as fs } from "fs";
@@ -513,10 +514,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.setHeader("Access-Control-Allow-Origin", "*");
     next();
   });
-  app.use("/uploads", (req, res, next) => {
-    const uploadsPath = path.join(process.cwd(), "uploads");
-    return require("express").static(uploadsPath)(req, res, next);
-  });
+  const uploadsPath = path.join(process.cwd(), "uploads");
+  app.use("/uploads", express.static(uploadsPath));
 
   const httpServer = createServer(app);
 

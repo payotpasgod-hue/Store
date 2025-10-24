@@ -317,6 +317,28 @@
       ],
       "releaseDate": "Sep 2019",
       "imagePath": "/images/iphones/iphone-11-pro-max.jpg"
+    },
+    {
+      "id": "fd4f1378-c8b4-46c7-8e21-4b1eba922796",
+      "displayName": "Jahad",
+      "deviceName": "Phone jehad",
+      "model": "Av1",
+      "colorOptions": [
+        "Black",
+        "White"
+      ],
+      "storageOptions": [
+        {
+          "capacity": "128GB",
+          "originalPrice": 10000,
+          "discount": 20,
+          "price": 8000
+        }
+      ],
+      "rating": 4.3,
+      "specs": [],
+      "releaseDate": "Sep 2020",
+      "imagePath": "/uploads/product-images/product-1761315102975-664591591.png"
     }
   ],
   "paymentConfig": {
