@@ -319,26 +319,21 @@
       "imagePath": "/images/iphones/iphone-11-pro-max.jpg"
     },
     {
-      "id": "fd4f1378-c8b4-46c7-8e21-4b1eba922796",
-      "displayName": "Jahad",
-      "deviceName": "Phone jehad",
+      "id": "991edaae-ae64-47a1-b2a4-d76cfa1c0af2",
+      "displayName": "Buy Apple iPhone 12 Pro Max",
+      "deviceName": "iPhone 12 Pro Max",
       "model": "Av1",
-      "colorOptions": [
-        "Black",
-        "White"
-      ],
+      "colorOptions": [],
       "storageOptions": [
         {
           "capacity": "128GB",
-          "originalPrice": 10000,
-          "discount": 20,
-          "price": 8000
+          "originalPrice": 1000,
+          "discount": 10,
+          "price": 900
         }
       ],
-      "rating": 4.3,
       "specs": [],
-      "releaseDate": "Sep 2020",
-      "imagePath": "/uploads/product-images/product-1761315102975-664591591.png"
+      "imagePath": "/uploads/product-images/product-1761379439597-302777640.png"
     }
   ],
   "paymentConfig": {
