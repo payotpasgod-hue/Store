@@ -598,18 +598,12 @@ function ProductManagement({ products }: { products: Product[] }) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const addProductMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: FormData) => {
       const response = await fetch("/api/admin/products", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        body: data,
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.error || "Failed to add product");
-      }
+      if (!response.ok) throw new Error("Failed to add product");
       return await response.json();
     },
     onSuccess: () => {
@@ -622,29 +616,22 @@ function ProductManagement({ products }: { products: Product[] }) {
         description: "Product has been added successfully",
       });
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({
-        title: "Error adding product",
-        description: error.message || "Failed to add product. Check console for details.",
+        title: "Error",
+        description: "Failed to add product",
         variant: "destructive",
       });
-      console.error("Product addition error:", error);
     },
   });
 
   const updateProductMutation = useMutation({
-    mutationFn: async ({ productId, data }: { productId: string; data: any }) => {
+    mutationFn: async ({ productId, data }: { productId: string; data: FormData }) => {
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        body: data,
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.error || "Failed to update product");
-      }
+      if (!response.ok) throw new Error("Failed to update product");
       return await response.json();
     },
     onSuccess: () => {
@@ -657,13 +644,12 @@ function ProductManagement({ products }: { products: Product[] }) {
         description: "Product has been updated successfully",
       });
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({
-        title: "Error updating product",
-        description: error.message || "Failed to update product. Check console for details.",
+        title: "Error",
+        description: "Failed to update product",
         variant: "destructive",
       });
-      console.error("Product update error:", error);
     },
   });
 
@@ -723,7 +709,7 @@ function ProductManagement({ products }: { products: Product[] }) {
     });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const originalPrice = parseFloat(formData.originalPrice);
     const discount = parseFloat(formData.discount || "0");
     
@@ -734,29 +720,6 @@ function ProductManagement({ products }: { products: Product[] }) {
         variant: "destructive",
       });
       return;
-    }
-
-    // Convert image to base64 if present
-    let imageBase64 = null;
-    let imageFilename = null;
-    if (selectedImage) {
-      try {
-        const reader = new FileReader();
-        imageBase64 = await new Promise<string>((resolve, reject) => {
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(selectedImage);
-        });
-        imageFilename = selectedImage.name;
-      } catch (error) {
-        console.error("Error reading image:", error);
-        toast({
-          title: "Image error",
-          description: "Failed to read image file",
-          variant: "destructive",
-        });
-        return;
-      }
     }
 
     const productData = {
@@ -772,14 +735,18 @@ function ProductManagement({ products }: { products: Product[] }) {
       rating: formData.rating ? parseFloat(formData.rating) : undefined,
       specs: formData.specs ? formData.specs.split(",").map(s => s.trim()) : [],
       releaseDate: formData.releaseDate || undefined,
-      image: imageBase64,
-      imageFilename: imageFilename,
     };
 
+    const formDataToSend = new FormData();
+    formDataToSend.append("productData", JSON.stringify(productData));
+    if (selectedImage) {
+      formDataToSend.append("image", selectedImage);
+    }
+
     if (editingProduct) {
-      updateProductMutation.mutate({ productId: editingProduct.id, data: productData });
+      updateProductMutation.mutate({ productId: editingProduct.id, data: formDataToSend });
     } else {
-      addProductMutation.mutate(productData);
+      addProductMutation.mutate(formDataToSend);
     }
   };
 

@@ -334,30 +334,6 @@
       ],
       "specs": [],
       "imagePath": "/uploads/product-images/product-1761379439597-302777640.png"
-    },
-    {
-      "id": "0ed5b552-53c9-40d4-9541-8756432effb4",
-      "displayName": "Test Product API",
-      "deviceName": "iPhone Test",
-      "model": "TEST123",
-      "colorOptions": [
-        "Black",
-        "White"
-      ],
-      "storageOptions": [
-        {
-          "capacity": "128GB",
-          "originalPrice": 50000,
-          "discount": 10,
-          "price": 45000
-        }
-      ],
-      "rating": 4.5,
-      "specs": [
-        "Test spec 1",
-        "Test spec 2"
-      ],
-      "releaseDate": "2024"
     }
   ],
   "paymentConfig": {

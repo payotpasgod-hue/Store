@@ -305,55 +305,27 @@ export class MemStorage implements IStorage {
 
   async addProduct(productData: Omit<Product, "id">, imagePath?: string): Promise<Product> {
     const configPath = path.join(process.cwd(), "config", "store-config.json");
+    const configData = await fs.readFile(configPath, "utf-8");
+    const config = JSON.parse(configData);
+
+    const id = randomUUID();
     
-    try {
-      // Ensure config directory exists
-      await fs.mkdir(path.dirname(configPath), { recursive: true });
-      
-      // Check if config file exists
-      let config;
-      try {
-        const configData = await fs.readFile(configPath, "utf-8");
-        config = JSON.parse(configData);
-      } catch (error) {
-        console.error("Config file not found or invalid, creating new one");
-        // Create a default config if it doesn't exist
-        config = {
-          products: [],
-          paymentConfig: {
-            upiId: "",
-            qrCodeUrl: ""
-          }
-        };
-      }
+    const storageOptionsWithCalculatedPrices = productData.storageOptions.map(option => ({
+      ...option,
+      price: Math.round(option.originalPrice! * (1 - (option.discount || 0) / 100)),
+    }));
 
-      const id = randomUUID();
-      
-      const storageOptionsWithCalculatedPrices = productData.storageOptions.map(option => ({
-        ...option,
-        price: Math.round(option.originalPrice! * (1 - (option.discount || 0) / 100)),
-      }));
+    const product: Product = {
+      id,
+      ...productData,
+      storageOptions: storageOptionsWithCalculatedPrices,
+      imagePath: imagePath || undefined,
+    };
 
-      const product: Product = {
-        id,
-        ...productData,
-        storageOptions: storageOptionsWithCalculatedPrices,
-        imagePath: imagePath || undefined,
-      };
-
-      if (!config.products) {
-        config.products = [];
-      }
-      
-      config.products.push(product);
-      await fs.writeFile(configPath, JSON.stringify(config, null, 2));
-      console.log("Product saved to config file successfully");
-      
-      return product;
-    } catch (error) {
-      console.error("Error in addProduct:", error);
-      throw error;
-    }
+    config.products.push(product);
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+    
+    return product;
   }
 
   async updateProduct(productId: string, updates: Partial<Omit<Product, "id">>, imagePath?: string): Promise<Product> {
