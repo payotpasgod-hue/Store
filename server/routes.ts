@@ -426,21 +426,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add new product with optional image upload
-  app.post("/api/admin/products", productImageUpload.single('image'), async (req, res) => {
+  // Add new product with optional base64 image
+  app.post("/api/admin/products", async (req, res) => {
     try {
-      console.log("Received product data:", req.body.productData);
-      console.log("Received file:", req.file ? req.file.filename : "No file");
+      console.log("Received product data");
       
-      const productData = insertProductSchema.parse(JSON.parse(req.body.productData));
+      const { image, imageFilename, ...productData } = req.body;
       
-      const imagePath = req.file 
-        ? `/uploads/product-images/${req.file.filename}`
-        : undefined;
+      // Save base64 image if provided
+      let imagePath: string | undefined;
+      if (image && imageFilename) {
+        try {
+          const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+          const buffer = Buffer.from(base64Data, 'base64');
+          const ext = path.extname(imageFilename) || '.jpg';
+          const filename = 'product-' + Date.now() + '-' + Math.round(Math.random() * 1E9) + ext;
+          const uploadPath = path.join(process.cwd(), 'uploads', 'product-images', filename);
+          
+          await fs.mkdir(path.dirname(uploadPath), { recursive: true });
+          await fs.writeFile(uploadPath, buffer);
+          imagePath = `/uploads/product-images/${filename}`;
+          console.log("Image saved:", imagePath);
+        } catch (error) {
+          console.error("Error saving image:", error);
+        }
+      }
+      
+      const validatedProductData = insertProductSchema.parse(productData);
       
       const productWithPrice = {
-        ...productData,
-        storageOptions: productData.storageOptions.map(opt => ({
+        ...validatedProductData,
+        storageOptions: validatedProductData.storageOptions.map(opt => ({
           ...opt,
           price: Math.round(opt.originalPrice * (1 - (opt.discount || 0) / 100))
         }))
@@ -465,21 +481,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update existing product with optional image upload
-  app.put("/api/admin/products/:productId", productImageUpload.single('image'), async (req, res) => {
+  // Update existing product with optional base64 image
+  app.put("/api/admin/products/:productId", async (req, res) => {
     try {
       const { productId } = req.params;
-      const updates = insertProductSchema.partial().parse(JSON.parse(req.body.productData));
+      const { image, imageFilename, ...updates } = req.body;
       
-      const imagePath = req.file 
-        ? `/uploads/product-images/${req.file.filename}`
-        : undefined;
+      // Save base64 image if provided
+      let imagePath: string | undefined;
+      if (image && imageFilename) {
+        try {
+          const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+          const buffer = Buffer.from(base64Data, 'base64');
+          const ext = path.extname(imageFilename) || '.jpg';
+          const filename = 'product-' + Date.now() + '-' + Math.round(Math.random() * 1E9) + ext;
+          const uploadPath = path.join(process.cwd(), 'uploads', 'product-images', filename);
+          
+          await fs.mkdir(path.dirname(uploadPath), { recursive: true });
+          await fs.writeFile(uploadPath, buffer);
+          imagePath = `/uploads/product-images/${filename}`;
+          console.log("Image saved:", imagePath);
+        } catch (error) {
+          console.error("Error saving image:", error);
+        }
+      }
+      
+      const validatedUpdates = insertProductSchema.partial().parse(updates);
       
       let updatesWithPrice: Partial<Omit<Product, "id">>;
-      if (updates.storageOptions) {
+      if (validatedUpdates.storageOptions) {
         updatesWithPrice = {
-          ...updates,
-          storageOptions: updates.storageOptions.map(opt => ({
+          ...validatedUpdates,
+          storageOptions: validatedUpdates.storageOptions.map(opt => ({
             capacity: opt.capacity,
             originalPrice: opt.originalPrice,
             discount: opt.discount,
@@ -487,7 +520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }))
         };
       } else {
-        updatesWithPrice = updates as Partial<Omit<Product, "id">>;
+        updatesWithPrice = validatedUpdates as Partial<Omit<Product, "id">>;
       }
       
       const product = await storage.updateProduct(productId, updatesWithPrice, imagePath);

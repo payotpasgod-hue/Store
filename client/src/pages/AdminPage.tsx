@@ -598,10 +598,13 @@ function ProductManagement({ products }: { products: Product[] }) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const addProductMutation = useMutation({
-    mutationFn: async (data: FormData) => {
+    mutationFn: async (data: any) => {
       const response = await fetch("/api/admin/products", {
         method: "POST",
-        body: data,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -630,10 +633,13 @@ function ProductManagement({ products }: { products: Product[] }) {
   });
 
   const updateProductMutation = useMutation({
-    mutationFn: async ({ productId, data }: { productId: string; data: FormData }) => {
+    mutationFn: async ({ productId, data }: { productId: string; data: any }) => {
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: "PUT",
-        body: data,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -717,7 +723,7 @@ function ProductManagement({ products }: { products: Product[] }) {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const originalPrice = parseFloat(formData.originalPrice);
     const discount = parseFloat(formData.discount || "0");
     
@@ -728,6 +734,29 @@ function ProductManagement({ products }: { products: Product[] }) {
         variant: "destructive",
       });
       return;
+    }
+
+    // Convert image to base64 if present
+    let imageBase64 = null;
+    let imageFilename = null;
+    if (selectedImage) {
+      try {
+        const reader = new FileReader();
+        imageBase64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(selectedImage);
+        });
+        imageFilename = selectedImage.name;
+      } catch (error) {
+        console.error("Error reading image:", error);
+        toast({
+          title: "Image error",
+          description: "Failed to read image file",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     const productData = {
@@ -743,18 +772,14 @@ function ProductManagement({ products }: { products: Product[] }) {
       rating: formData.rating ? parseFloat(formData.rating) : undefined,
       specs: formData.specs ? formData.specs.split(",").map(s => s.trim()) : [],
       releaseDate: formData.releaseDate || undefined,
+      image: imageBase64,
+      imageFilename: imageFilename,
     };
 
-    const formDataToSend = new FormData();
-    formDataToSend.append("productData", JSON.stringify(productData));
-    if (selectedImage) {
-      formDataToSend.append("image", selectedImage);
-    }
-
     if (editingProduct) {
-      updateProductMutation.mutate({ productId: editingProduct.id, data: formDataToSend });
+      updateProductMutation.mutate({ productId: editingProduct.id, data: productData });
     } else {
-      addProductMutation.mutate(formDataToSend);
+      addProductMutation.mutate(productData);
     }
   };
 
