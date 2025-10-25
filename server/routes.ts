@@ -429,6 +429,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add new product with optional image upload
   app.post("/api/admin/products", productImageUpload.single('image'), async (req, res) => {
     try {
+      console.log("Received product data:", req.body.productData);
+      console.log("Received file:", req.file ? req.file.filename : "No file");
+      
       const productData = insertProductSchema.parse(JSON.parse(req.body.productData));
       
       const imagePath = req.file 
@@ -443,15 +446,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
       };
       
+      console.log("Adding product to storage...");
       const product = await storage.addProduct(productWithPrice, imagePath);
+      console.log("Product added successfully:", product.id);
       
       res.status(201).json(product);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Validation error:", error.errors);
         return res.status(400).json({ error: "Invalid product data", details: error.errors });
       }
       console.error("Error adding product:", error);
-      res.status(500).json({ error: "Failed to add product" });
+      console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
+      res.status(500).json({ 
+        error: "Failed to add product",
+        message: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

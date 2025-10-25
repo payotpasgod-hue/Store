@@ -603,7 +603,10 @@ function ProductManagement({ products }: { products: Product[] }) {
         method: "POST",
         body: data,
       });
-      if (!response.ok) throw new Error("Failed to add product");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || "Failed to add product");
+      }
       return await response.json();
     },
     onSuccess: () => {
@@ -616,12 +619,13 @@ function ProductManagement({ products }: { products: Product[] }) {
         description: "Product has been added successfully",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: "Failed to add product",
+        title: "Error adding product",
+        description: error.message || "Failed to add product. Check console for details.",
         variant: "destructive",
       });
+      console.error("Product addition error:", error);
     },
   });
 
@@ -631,7 +635,10 @@ function ProductManagement({ products }: { products: Product[] }) {
         method: "PUT",
         body: data,
       });
-      if (!response.ok) throw new Error("Failed to update product");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || "Failed to update product");
+      }
       return await response.json();
     },
     onSuccess: () => {
@@ -644,12 +651,13 @@ function ProductManagement({ products }: { products: Product[] }) {
         description: "Product has been updated successfully",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: "Failed to update product",
+        title: "Error updating product",
+        description: error.message || "Failed to update product. Check console for details.",
         variant: "destructive",
       });
+      console.error("Product update error:", error);
     },
   });
 
