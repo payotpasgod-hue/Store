@@ -5,9 +5,9 @@ import { storage } from "./storage";
 import { promises as fs } from "fs";
 import path from "path";
 import multer from "multer";
-import { insertOrderSchema, insertCartItemSchema, insertAdminSettingsSchema, insertProductPriceOverrideSchema, insertProductSchema, type StoreConfig, type Product } from "@shared/schema";
+import { insertOrderSchema, insertAdminSettingsSchema, insertProductPriceOverrideSchema, insertProductSchema, type StoreConfig, type Product } from "@shared/schema";
 import { z } from "zod";
-import { sendOrderNotification, sendBatchOrderNotification } from "./telegram";
+import { sendOrderNotification } from "./telegram";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads", "payment-screenshots");
@@ -111,159 +111,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Cart endpoints
-  app.get("/api/cart", async (req, res) => {
+  // Get single product by ID
+  app.get("/api/products/:id", async (req, res) => {
     try {
-      const cartItems = await storage.getCartItems();
-      res.json(cartItems);
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-      res.status(500).json({ error: "Failed to fetch cart" });
-    }
-  });
-
-  app.post("/api/cart", async (req, res) => {
-    try {
-      const itemData = insertCartItemSchema.parse(req.body);
-      const cartItem = await storage.addCartItem(itemData);
-      res.status(201).json(cartItem);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid cart item data", details: error.errors });
-      }
-      console.error("Error adding to cart:", error);
-      res.status(500).json({ error: "Failed to add item to cart" });
-    }
-  });
-
-  app.patch("/api/cart/:id", async (req, res) => {
-    try {
-      const { quantity } = req.body;
-      if (typeof quantity !== "number" || quantity < 1) {
-        return res.status(400).json({ error: "Invalid quantity" });
-      }
-      const updatedItem = await storage.updateCartItem(req.params.id, quantity);
-      if (!updatedItem) {
-        return res.status(404).json({ error: "Cart item not found" });
-      }
-      res.json(updatedItem);
-    } catch (error) {
-      console.error("Error updating cart item:", error);
-      res.status(500).json({ error: "Failed to update cart item" });
-    }
-  });
-
-  app.delete("/api/cart/:id", async (req, res) => {
-    try {
-      const deleted = await storage.removeCartItem(req.params.id);
-      if (!deleted) {
-        return res.status(404).json({ error: "Cart item not found" });
-      }
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error removing cart item:", error);
-      res.status(500).json({ error: "Failed to remove cart item" });
-    }
-  });
-
-  app.delete("/api/cart", async (req, res) => {
-    try {
-      await storage.clearCart();
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error clearing cart:", error);
-      res.status(500).json({ error: "Failed to clear cart" });
-    }
-  });
-
-  // Create batch orders with payment screenshot (for cart checkout)
-  app.post("/api/orders/batch", upload.single('screenshot'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "Payment screenshot is required" });
-      }
-
-      const { items, customerName, phone, address, pinCode, paymentType } = req.body;
-      
-      if (!items) {
-        return res.status(400).json({ error: "Items are required" });
-      }
-
-      let cartItems;
-      try {
-        cartItems = JSON.parse(items);
-      } catch (e) {
-        return res.status(400).json({ error: "Invalid items format" });
-      }
-
-      if (!Array.isArray(cartItems) || cartItems.length === 0) {
-        return res.status(400).json({ error: "Items must be a non-empty array" });
-      }
-
       const configPath = path.join(process.cwd(), "config", "store-config.json");
       const configData = await fs.readFile(configPath, "utf-8");
       const config: StoreConfig = JSON.parse(configData);
-
-      const ordersData = [];
-
-      for (const item of cartItems) {
-        const product = config.products.find(p => p.id === item.productId);
-        if (!product) {
-          return res.status(404).json({ error: `Product ${item.productId} not found` });
-        }
-
-        const storageOption = product.storageOptions.find(s => s.capacity === item.storage);
-        if (!storageOption) {
-          return res.status(404).json({ error: `Storage option ${item.storage} not found for product ${item.productId}` });
-        }
-
-        const fullPrice = storageOption.price;
-        const paidAmount = paymentType === "full" 
-          ? fullPrice 
-          : config.paymentConfig.defaultAdvancePayment;
-        const remainingBalance = fullPrice - paidAmount;
-
-        ordersData.push({
-          customerName,
-          phone,
-          address,
-          pinCode,
-          productId: item.productId,
-          productName: product.displayName,
-          storage: item.storage,
-          color: item.color,
-          fullPrice,
-          paidAmount,
-          remainingBalance,
-          paymentType,
-          paymentScreenshot: req.file.filename,
-        });
+      
+      const product = config.products.find(p => p.id === req.params.id);
+      if (!product) {
+        return res.status(404).json({ error: "Product not found" });
       }
-
-      const orders = await storage.createOrders(ordersData);
       
-      // Send Telegram notification (async, don't block response)
-      sendBatchOrderNotification(orders).catch(err => 
-        console.error("Failed to send Telegram notification:", err)
-      );
-      
-      res.status(201).json(orders);
+      res.json(product);
     } catch (error) {
-      console.error("Error creating batch orders:", error);
-      
-      if (req.file) {
-        try {
-          await fs.unlink(path.join(uploadDir, req.file.filename));
-        } catch (unlinkError) {
-          console.error("Error deleting uploaded file:", unlinkError);
-        }
-      }
-      
-      res.status(500).json({ error: "Failed to create orders" });
+      console.error("Error loading product:", error);
+      res.status(500).json({ error: "Failed to load product" });
     }
   });
 
-  // Create order with payment screenshot
+  // Create order with payment screenshot (direct buy)
   app.post("/api/orders", upload.single('screenshot'), async (req, res) => {
     try {
       if (!req.file) {
@@ -277,8 +144,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         address: req.body.address,
         pinCode: req.body.pinCode,
         productId: req.body.productId,
+        productName: req.body.productName,
         storage: req.body.storage,
         color: req.body.color,
+        fullPrice: parseFloat(req.body.fullPrice),
         paymentType: req.body.paymentType,
       });
 

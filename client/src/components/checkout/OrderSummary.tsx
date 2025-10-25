@@ -1,31 +1,21 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { CartItem, StoreConfig } from "@shared/schema";
+import type { StoreConfig } from "@shared/schema";
 
 interface OrderSummaryProps {
-  cartItems: CartItem[];
+  orderItem: {
+    productId: string;
+    productName: string;
+    storage: string;
+    color: string | null;
+    fullPrice: number;
+  };
   config: StoreConfig;
   advancePayment: number;
 }
 
-export function OrderSummary({ cartItems, config, advancePayment }: OrderSummaryProps) {
-  const calculateTotals = () => {
-    let subtotal = 0;
-    let itemsCount = 0;
-    
-    cartItems.forEach(item => {
-      const product = config.products.find(p => p.id === item.productId);
-      const storageOption = product?.storageOptions.find(s => s.capacity === item.storage);
-      if (product && storageOption) {
-        subtotal += storageOption.price * item.quantity;
-        itemsCount += item.quantity;
-      }
-    });
-    
-    return { subtotal, itemsCount };
-  };
-
-  const { subtotal, itemsCount } = calculateTotals();
+export function OrderSummary({ orderItem, config, advancePayment }: OrderSummaryProps) {
+  const fullPrice = orderItem.fullPrice;
 
   return (
     <Card className="rounded-2xl sticky top-4">
@@ -38,48 +28,32 @@ export function OrderSummary({ cartItems, config, advancePayment }: OrderSummary
 
       <CardContent className="space-y-4">
         <div className="space-y-3">
-          {cartItems.map((item) => {
-            const product = config.products.find(p => p.id === item.productId);
-            const storageOption = product?.storageOptions.find(s => s.capacity === item.storage);
-            
-            if (!product || !storageOption) return null;
-            
-            return (
-              <div key={item.id} className="text-sm">
-                <div className="flex justify-between mb-1">
-                  <span className="font-medium line-clamp-1" data-testid={`text-summary-product-${item.id}`}>
-                    {product.displayName}
-                  </span>
-                  <span className="font-medium ml-2">×{item.quantity}</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>{item.color ? `${item.color}, ${item.storage}` : item.storage}</span>
-                  <span data-testid={`text-summary-price-${item.id}`}>
-                    ₹{(storageOption.price * item.quantity).toLocaleString("en-IN")}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          <div className="text-sm">
+            <div className="flex justify-between mb-1">
+              <span className="font-medium line-clamp-2" data-testid="text-summary-product">
+                {orderItem.productName}
+              </span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
+              <span>{orderItem.color ? `${orderItem.color}, ${orderItem.storage}` : orderItem.storage}</span>
+              <span data-testid="text-summary-price">
+                ₹{fullPrice.toLocaleString("en-IN")}
+              </span>
+            </div>
+          </div>
         </div>
 
         <Separator />
 
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Items ({itemsCount}):</span>
-            <span className="font-medium" data-testid="text-summary-items">
-              {itemsCount}
-            </span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Subtotal:</span>
+            <span className="text-muted-foreground">Price:</span>
             <span className="font-medium" data-testid="text-summary-subtotal">
-              ₹{subtotal.toLocaleString("en-IN")}
+              ₹{fullPrice.toLocaleString("en-IN")}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Min. Advance (per item):</span>
+            <span className="text-muted-foreground">Min. Advance:</span>
             <span className="font-medium" data-testid="text-summary-advance">
               ₹{advancePayment.toLocaleString("en-IN")}
             </span>

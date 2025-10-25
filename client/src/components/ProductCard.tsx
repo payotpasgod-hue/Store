@@ -1,58 +1,27 @@
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import type { Product } from "@shared/schema";
-import { Star, Shield, ShoppingCart } from "lucide-react";
+import { Star, Shield, Eye } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const [selectedStorage, setSelectedStorage] = useState(product.storageOptions[0].capacity);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
+  const storageOption = product.storageOptions[0];
 
-  const addToCartMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest("POST", "/api/cart", {
-        productId: product.id,
-        storage: selectedStorage,
-        quantity: 1,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
-      toast({
-        title: "Added to Cart",
-        description: `${product.displayName} (${selectedStorage}) has been added to your cart.`,
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to add item to cart. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    addToCartMutation.mutate();
+  const handleViewProduct = () => {
+    navigate(`/products/${product.id}`);
   };
-
-  const storageOption = product.storageOptions.find(s => s.capacity === selectedStorage) || product.storageOptions[0];
 
   return (
     <Card 
-      className="overflow-hidden hover-elevate active-elevate-2 transition-all" 
+      className="overflow-hidden hover-elevate active-elevate-2 transition-all cursor-pointer" 
       data-testid={`card-product-${product.id}`}
+      onClick={handleViewProduct}
     >
       <CardContent className="p-0">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-muted/20 to-muted/5 overflow-hidden">
@@ -87,29 +56,6 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.displayName}
           </h3>
           
-          {product.storageOptions.length > 1 && (
-            <Select value={selectedStorage} onValueChange={setSelectedStorage}>
-              <SelectTrigger 
-                className="w-full h-8"
-                data-testid={`select-storage-${product.id}`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {product.storageOptions.map((option) => (
-                  <SelectItem 
-                    key={option.capacity} 
-                    value={option.capacity}
-                    data-testid={`option-storage-${product.id}-${option.capacity}`}
-                  >
-                    {option.capacity}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold text-[#22C55E]" data-testid={`text-price-${product.id}`}>
               ₹{storageOption.price.toLocaleString("en-IN")}
@@ -138,12 +84,11 @@ export function ProductCard({ product }: ProductCardProps) {
           <Button 
             className="w-full rounded-full"
             size="sm"
-            onClick={handleAddToCart}
-            disabled={addToCartMutation.isPending}
-            data-testid={`button-add-to-cart-${product.id}`}
+            onClick={handleViewProduct}
+            data-testid={`button-view-product-${product.id}`}
           >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
+            <Eye className="h-4 w-4 mr-2" />
+            View Details
           </Button>
         </div>
       </CardContent>

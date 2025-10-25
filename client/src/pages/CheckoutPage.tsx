@@ -5,7 +5,7 @@ import { AddressStep } from "@/components/checkout/AddressStep";
 import { PaymentStep } from "@/components/checkout/PaymentStep";
 import { CheckoutProgress } from "@/components/checkout/CheckoutProgress";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
-import type { CartItem, StoreConfig } from "@shared/schema";
+import type { StoreConfig, Product } from "@shared/schema";
 import { Loader2 } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -18,21 +18,30 @@ export default function CheckoutPage() {
     pinCode: "",
   });
 
-  const { data: cartItems, isLoading: cartLoading } = useQuery<CartItem[]>({
-    queryKey: ["/api/cart"],
-  });
+  // Get product info from URL parameters
+  const searchParams = new URLSearchParams(window.location.search);
+  const productId = searchParams.get("productId");
+  const productName = searchParams.get("productName");
+  const storage = searchParams.get("storage");
+  const fullPrice = searchParams.get("fullPrice");
+  const color = searchParams.get("color");
 
   const { data: config, isLoading: configLoading } = useQuery<StoreConfig>({
     queryKey: ["/api/config"],
   });
 
-  useEffect(() => {
-    if (!cartLoading && (!cartItems || cartItems.length === 0)) {
-      navigate("/cart");
-    }
-  }, [cartItems, cartLoading, navigate]);
+  const { data: product, isLoading: productLoading } = useQuery<Product>({
+    queryKey: ["/api/products", productId],
+    enabled: !!productId,
+  });
 
-  if (cartLoading || configLoading) {
+  useEffect(() => {
+    if (!productId || !storage || !fullPrice) {
+      navigate("/");
+    }
+  }, [productId, storage, fullPrice, navigate]);
+
+  if (configLoading || productLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" data-testid="loader-checkout" />
@@ -40,9 +49,17 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!cartItems || cartItems.length === 0 || !config) {
+  if (!config || !product || !productId || !storage || !fullPrice) {
     return null;
   }
+
+  const orderItem = {
+    productId,
+    productName: productName || product.displayName,
+    storage,
+    color,
+    fullPrice: parseFloat(fullPrice),
+  };
 
   return (
     <div className="min-h-screen bg-background py-8 md:py-12">
@@ -65,7 +82,7 @@ export default function CheckoutPage() {
             ) : (
               <PaymentStep
                 addressData={addressData}
-                cartItems={cartItems}
+                orderItem={orderItem}
                 config={config}
                 paymentConfig={config.paymentConfig}
                 onBack={() => setStep(1)}
@@ -75,7 +92,7 @@ export default function CheckoutPage() {
 
           <div className="lg:col-span-1">
             <OrderSummary
-              cartItems={cartItems}
+              orderItem={orderItem}
               config={config}
               advancePayment={config.paymentConfig.defaultAdvancePayment}
             />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import type { CartItem, PaymentConfig, StoreConfig } from "@shared/schema";
+import type { PaymentConfig, StoreConfig } from "@shared/schema";
 import { Loader2 } from "lucide-react";
 
 interface PaymentStepProps {
@@ -18,20 +17,25 @@ interface PaymentStepProps {
     address: string;
     pinCode: string;
   };
-  cartItems: CartItem[];
+  orderItem: {
+    productId: string;
+    productName: string;
+    storage: string;
+    color: string | null;
+    fullPrice: number;
+  };
   config: StoreConfig;
   paymentConfig: PaymentConfig;
   onBack: () => void;
 }
 
-export function PaymentStep({ addressData, cartItems, config, paymentConfig, onBack }: PaymentStepProps) {
+export function PaymentStep({ addressData, orderItem, config, paymentConfig, onBack }: PaymentStepProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [paymentType, setPaymentType] = useState<"full" | "advance" | null>(null);
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
-  const createOrdersMutation = useMutation({
+  const createOrderMutation = useMutation({
     mutationFn: async () => {
       if (!screenshot) {
         throw new Error("Screenshot is required");
@@ -48,41 +52,29 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
       formData.append("address", addressData.address);
       formData.append("pinCode", addressData.pinCode);
       formData.append("paymentType", paymentType);
-      formData.append("items", JSON.stringify(cartItems));
+      formData.append("productId", orderItem.productId);
+      formData.append("productName", orderItem.productName);
+      formData.append("storage", orderItem.storage);
+      formData.append("fullPrice", orderItem.fullPrice.toString());
+      if (orderItem.color) {
+        formData.append("color", orderItem.color);
+      }
 
-      const response = await fetch("/api/orders/batch", {
+      const response = await fetch("/api/orders", {
         method: "POST",
         body: formData,
       });
       
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to create orders: ${errorText}`);
+        throw new Error(`Failed to create order: ${errorText}`);
       }
       
-      const orders = await response.json();
-      
-      if (!Array.isArray(orders) || orders.length === 0) {
-        throw new Error("No orders were created");
-      }
-
-      return orders;
+      const order = await response.json();
+      return order;
     },
-    onSuccess: async (orders) => {
-      try {
-        await apiRequest("DELETE", "/api/cart");
-        queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
-        
-        const orderIds = orders.map(o => o.id).join(",");
-        navigate(`/order-confirmation?orderId=${orderIds}`);
-      } catch (error) {
-        console.error("Error clearing cart or navigating:", error);
-        toast({
-          title: "Orders Placed",
-          description: "Your orders were placed successfully. Please refresh the page.",
-        });
-        setTimeout(() => navigate("/"), 2000);
-      }
+    onSuccess: async (order) => {
+      navigate(`/order-confirmation?orderId=${order.id}`);
     },
     onError: (error) => {
       console.error("Order creation error:", error);
@@ -113,28 +105,12 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
       return;
     }
 
-    createOrdersMutation.mutate();
+    createOrderMutation.mutate();
   };
 
-  const calculateTotals = () => {
-    let fullPrice = 0;
-    
-    cartItems.forEach(item => {
-      const product = config.products.find(p => p.id === item.productId);
-      const storageOption = product?.storageOptions.find(s => s.capacity === item.storage);
-      if (storageOption) {
-        fullPrice += storageOption.price * item.quantity;
-      }
-    });
-    
-    const advancePrice = paymentConfig.defaultAdvancePayment * cartItems.reduce((sum, item) => sum + item.quantity, 0);
-    const remainingBalance = paymentType === "full" ? 0 : (paymentType === "advance" ? fullPrice - advancePrice : 0);
-    
-    return { fullPrice, advancePrice, remainingBalance };
-  };
-
-  const totals = calculateTotals();
-  const paymentAmount = paymentType === "full" ? totals.fullPrice : (paymentType === "advance" ? totals.advancePrice : 0);
+  const fullPrice = orderItem.fullPrice;
+  const advancePayment = paymentConfig.defaultAdvancePayment;
+  const amountToPay = paymentType === "full" ? fullPrice : advancePayment;
 
   return (
     <Card className="rounded-2xl">
@@ -144,140 +120,156 @@ export function PaymentStep({ addressData, cartItems, config, paymentConfig, onB
           Payment Details
         </CardTitle>
         <CardDescription>
-          Complete your payment using UPI and upload the screenshot
+          Complete your payment to confirm your order
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <Label>Choose Payment Option</Label>
-          <RadioGroup value={paymentType || ""} onValueChange={(v) => setPaymentType(v as "full" | "advance")}>
-            <div 
-              className={`flex items-start space-x-3 p-4 rounded-lg border-2 hover-elevate cursor-pointer transition-all ${
-                paymentType === "full" ? "border-primary bg-primary/5" : "border-border"
-              }`}
-              onClick={() => setPaymentType("full")}
-              data-testid="radio-full-payment"
-            >
-              <RadioGroupItem value="full" id="full" />
-              <div className="flex-1">
-                <Label htmlFor="full" className="cursor-pointer font-medium">
-                  Pay Full Amount
+        <div>
+          <Label className="text-base font-semibold mb-4 block">Select Payment Option</Label>
+          <RadioGroup value={paymentType || ""} onValueChange={(value) => setPaymentType(value as "full" | "advance")}>
+            <Card className="mb-3 hover-elevate">
+              <CardContent className="flex items-start gap-4 p-4">
+                <RadioGroupItem 
+                  value="full" 
+                  id="full" 
+                  className="mt-1"
+                  data-testid="radio-payment-full"
+                />
+                <Label htmlFor="full" className="flex-1 cursor-pointer">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="font-semibold">Pay Full Amount</span>
+                    <span className="font-bold text-lg text-[#22C55E]">
+                      ₹{fullPrice.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Complete payment now</p>
                 </Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Pay ₹{totals.fullPrice.toLocaleString("en-IN")} now. No balance remaining.
-                </p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            <div 
-              className={`flex items-start space-x-3 p-4 rounded-lg border-2 hover-elevate cursor-pointer transition-all ${
-                paymentType === "advance" ? "border-primary bg-primary/5" : "border-border"
-              }`}
-              onClick={() => setPaymentType("advance")}
-              data-testid="radio-advance-payment"
-            >
-              <RadioGroupItem value="advance" id="advance" />
-              <div className="flex-1">
-                <Label htmlFor="advance" className="cursor-pointer font-medium">
-                  Pay Advance (Recommended)
+            <Card className="hover-elevate">
+              <CardContent className="flex items-start gap-4 p-4">
+                <RadioGroupItem 
+                  value="advance" 
+                  id="advance" 
+                  className="mt-1"
+                  data-testid="radio-payment-advance"
+                />
+                <Label htmlFor="advance" className="flex-1 cursor-pointer">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="font-semibold">Pay Advance</span>
+                    <div className="text-right">
+                      <div className="font-bold text-lg text-[#22C55E]">
+                        ₹{advancePayment.toLocaleString("en-IN")}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Balance: ₹{(fullPrice - advancePayment).toLocaleString("en-IN")}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Pay ₹{advancePayment.toLocaleString("en-IN")} now, remaining at delivery
+                  </p>
                 </Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Pay ₹{totals.advancePrice.toLocaleString("en-IN")} now (₹{paymentConfig.defaultAdvancePayment.toLocaleString("en-IN")} per item).
-                  Balance ₹{(totals.fullPrice - totals.advancePrice).toLocaleString("en-IN")} on delivery.
-                </p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </RadioGroup>
         </div>
 
         {paymentType && (
-          <div className="bg-muted/30 rounded-xl p-6 space-y-4">
-          <div className="text-center">
-            <p className="text-sm font-medium mb-4">Scan QR Code or Use UPI ID</p>
-            <div className="bg-white p-4 rounded-lg inline-block shadow-lg mb-4">
-              <img
-                src={paymentConfig.qrCodeUrl}
-                alt="Payment QR Code"
-                className="w-64 h-64 object-contain"
-                data-testid="img-qr-code"
-              />
-            </div>
-            <div className="flex items-center justify-center gap-2 p-3 bg-background rounded-lg">
-              <span className="material-icons text-primary">account_balance</span>
-              <code className="font-mono text-sm" data-testid="text-upi-id">{paymentConfig.upiId}</code>
-            </div>
-          </div>
-
-          <div className="border-t pt-4">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-muted-foreground">Amount to Pay Now:</span>
-              <span className="font-semibold text-lg" data-testid="text-amount-to-pay">
-                ₹{paymentAmount.toLocaleString("en-IN")}
+          <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Amount to Pay:</span>
+              <span className="text-2xl font-bold text-[#22C55E]" data-testid="text-amount-to-pay">
+                ₹{amountToPay.toLocaleString("en-IN")}
               </span>
             </div>
-            {totals.remainingBalance > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Pay on Delivery:</span>
-                <span className="font-medium" data-testid="text-remaining-balance">
-                  ₹{totals.remainingBalance.toLocaleString("en-IN")}
-                </span>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">UPI ID</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={paymentConfig.upiId}
+                  readOnly
+                  className="font-mono"
+                  data-testid="input-upi-id"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(paymentConfig.upiId);
+                    toast({
+                      title: "Copied!",
+                      description: "UPI ID copied to clipboard",
+                    });
+                  }}
+                  data-testid="button-copy-upi"
+                >
+                  <span className="material-icons text-sm">content_copy</span>
+                </Button>
+              </div>
+            </div>
+
+            {paymentConfig.qrCodeUrl && (
+              <div className="text-center">
+                <Label className="text-sm font-medium mb-2 block">Scan QR Code</Label>
+                <div className="inline-block bg-white p-4 rounded-lg">
+                  <img
+                    src={paymentConfig.qrCodeUrl}
+                    alt="Payment QR Code"
+                    className="w-48 h-48 mx-auto"
+                    data-testid="img-qr-code"
+                  />
+                </div>
               </div>
             )}
           </div>
-        </div>
         )}
 
-        {paymentType && (
-          <div className="space-y-2">
-          <Label htmlFor="screenshot">Upload Payment Screenshot *</Label>
+        <div className="space-y-2">
+          <Label htmlFor="screenshot">
+            Upload Payment Screenshot <span className="text-destructive">*</span>
+          </Label>
           <Input
             id="screenshot"
             type="file"
             accept="image/*"
             onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
-            data-testid="input-screenshot"
+            data-testid="input-payment-screenshot"
           />
-          <p className="text-xs text-muted-foreground">
-            Take a screenshot of your successful payment and upload it here
-          </p>
           {screenshot && (
-            <p className="text-sm text-primary flex items-center gap-1">
-              <span className="material-icons text-sm">check_circle</span>
-              {screenshot.name}
+            <p className="text-sm text-muted-foreground" data-testid="text-screenshot-name">
+              Selected: {screenshot.name}
             </p>
           )}
         </div>
-        )}
       </CardContent>
 
       <CardFooter className="flex gap-3">
         <Button
           variant="outline"
-          size="lg"
           onClick={onBack}
-          disabled={createOrdersMutation.isPending}
-          className="flex-1 rounded-full"
+          disabled={createOrderMutation.isPending}
+          className="flex-1"
           data-testid="button-back"
         >
-          <span className="material-icons mr-2">arrow_back</span>
           Back
         </Button>
         <Button
-          size="lg"
           onClick={handleSubmit}
-          disabled={!screenshot || createOrdersMutation.isPending}
+          disabled={createOrderMutation.isPending}
           className="flex-1 rounded-full"
           data-testid="button-place-order"
         >
-          {createOrdersMutation.isPending ? (
+          {createOrderMutation.isPending ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               Processing...
             </>
           ) : (
             <>
-              <span className="material-icons mr-2">check_circle</span>
+              <span className="material-icons mr-2 text-sm">check_circle</span>
               Place Order
             </>
           )}
