@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Menu, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logoImage from "@assets/assets_task_01k897y00cej4bw0xjk1p17he7_1761246962_img_0_1761249465607.webp";
+import logoImage from "@assets/attached_assets/IMG-20251025-WA0000-removebg-preview.png";
 
 export function Header() {
   return (
